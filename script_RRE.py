@@ -4,38 +4,37 @@ import pandas as pd
 from openpyxl import Workbook
 #import numpy as np
 import statistics
-# Directorio donde se encuentran los archivos CSV y en la cual se trabajará todo el script
-mes_nombre = "Septiembre"
-ruta_guardado = f"Transacciones/{mes_nombre}"
+# Nombre del mes con texto, se ocupara para leer la carpeta del mes y asignar el nombre a los archivos generados
+mes_nombre = "Julio"
 
-# Modificar el contenido de Y = "Año"
 # Modificar el contenido de m = "mes" * Para los meses que anteriores a octubre ocupar la sintaxis 09 = Septiembre 08 = Agosto
+# Modificar el contenido de Y = "Año"
 # Recuerda ocupar la sintaxis correcta en las fechas para que los archivos se lean correctamente
+m = "07"
 y = "2023"
-m = "09"
+# Nombre de los archivos a leer
 a = "-Transacciones.csv"
 ae = "-Transacciones-extension.csv"
 at = "-Test-Transacciones.csv"
-#Definir el nombre de los archivos que seran guardados en la carpeta al finalizar el analisis
+# Ruta de la cual se extraeran todos los archivos
+ruta_guardado = f"Transacciones/{m} {mes_nombre}"
+# Definir el nombre de los archivos que seran guardados en la carpeta al finalizar el analisis
 mes_filtrado = f"{mes_nombre}_filtrado.csv"
 mes_completo = f"{mes_nombre}_completo.csv"
 archivo_mp = f"Reporte_MP_{mes_nombre}.xlsx"
+#quincena = f"1ra_qna_{mes_nombre}"
+quincena = f"{mes_nombre}"
 
+dia_in =  1 
+dia_fn = 32
+
+# Listado de los archvios -Transacciones.csv
 # Listado de los archivo a leer segun el rango especificado 
-# Elimina el simbolo # del principio de la linea para poder activar el rango de dias a trabajar
-# Agrega el Simbolo # al rango de dias que no deseas trabajar
-# Primera Quincena del 1 al 15  
-#archivo_tr = [os.path.join(ruta_guardado, f"{y}{m}{d:02d}{a}") for d in range(1, 15)]
-
-# Segunda quincena del 16 al 30 --NOTA: Si el mes tiene 31 dias modificar a lo siguiente range(16,32)
-#archivo_tr = [os.path.join(ruta_guardado, f"{y}{m}{d:02d}{a}") for d in range(16, 31)]
-
-# Mes completo --NOTA: Si el mes tiene 31 dias modificar a lo siguiente range(1,32)
-archivo_tr = [os.path.join(ruta_guardado, f"{y}{m}{d:02d}{a}") for d in range(1, 31)]
+archivo_tr = [os.path.join(ruta_guardado, f"{y}{m}{d:02d}{a}") for d in range(dia_in, dia_fn)]
 
 # Leer Archivos de Extencion para obtener la duracion de las transacciones
 # Lista de nombres de archivo
-archivo_ex = [os.path.join(ruta_guardado, f"{y}{m}{d:02d}{ae}") for d in range(1, 31)]
+archivo_ex = [os.path.join(ruta_guardado, f"{y}{m}{d:02d}{ae}") for d in range(dia_in, dia_fn)]
 
 # Areglo que se llenara con los archivos -Transacciones-extension.csv
 extenciones = []
@@ -133,7 +132,6 @@ for df in transacciones:
 
 # Convertir el arreglo resumen en DataFrame
 resultados = pd.DataFrame(resumen)
-
 
 # Totales de transacciones fisicas para poder realizar operaciones
 tr_fisicas = resultados['TR Fisicas'].sum()
@@ -264,10 +262,7 @@ hoja3.append([num_tarjetas,num_trx,mean_montos])
 ## Guardado de Archivos ##
 
 # Guardar el DataFrame de resultados en un archivo CSV este contiene el Resumen del total de transacciones y montos por fecha
-# Recuerda agregar el # o eliminar segun la quincena o el mes con el que se desea trabajar
-#archivo_ex = f"Resumen_RRE_primera_quincena_{mes_nombre}.csv"
-#archivo_ex = f"Resumen_RRE_segunda_quincena_{mes_nombre}.csv"
-archivo_ex = f"Resumen_RRE_mes_{mes_nombre}.csv"
+archivo_ex = f"Resumen_RRE_{quincena}.csv"
 ruta_resultados = os.path.join(ruta_guardado, archivo_ex)
 resultados.to_csv(ruta_resultados, index=False)
 
@@ -282,13 +277,13 @@ df_completo.to_csv(ruta_completa, index=False)
 ruta_mp = os.path.join(ruta_guardado,archivo_mp)
 wb.save(ruta_mp)
 
-#Section delete files
+'''#Section delete files
 
-'''#eliminacionde archivos
+#eliminacionde archivos
 archivos_a_eliminar = []
 # Genera las rutas de los archivos que deseas eliminar
 # Recuerda ocupar el mismo rango que en la parte de arriba para que los archivos leidos sean eliminados
-for d in range(17, 24):
+for d in range(dia_in, dia_fn):
     archivo_csv = os.path.join(ruta_guardado, f"{y}{m}{d:02d}{a}")
     archivo_extension = os.path.join(ruta_guardado, f"{y}{m}{d:02d}{ae}")
     archivo_test = os.path.join(ruta_guardado, f"{y}{m}{d:02d}{at}") # Agregar # al principio en caso de no exisitir -Test-Transacciones.csv en la carpeta de trabajo 
@@ -303,5 +298,4 @@ for archivo in archivos_a_eliminar:
         print(f"El archivo {archivo} no existe.")
     except Exception as e:
         print(f"Ocurrió un error al eliminar el archivo {archivo}: {str(e)}")
-
 '''
