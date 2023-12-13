@@ -4,11 +4,11 @@ import pandas as pd
 from openpyxl import Workbook
 
 ## Nombre del mes con texto, se ocupara para leer la carpeta del mes y asignar el nombre a los archivos generados
-mes_nombre = "Enero"
+mes_nombre = "Noviembre"
 
 ## Modificar el contenido de m = "mes" * Para los meses que anteriores a octubre ocupar la sintaxis 09 = Septiembre 08 = Agosto
 ## Modificar el contenido de Y = "Año" 2023 / 2024 / 2025 
-m = "01"
+m = "11"
 y = "2023"
 
 ## Nombre de las extenciones de los archivos que ocupara el script para realizar 
@@ -32,13 +32,13 @@ mes_completo = f"{mes_nombre}_completo.csv"
 #quincena = f"{second}_qna_{mes_nombre}"
 
 ## Archivos mensuales eliminar # cuando se trabaje el script por mes
-archivo_mp = f"Reporte_MP_{mes_nombre}.xlsx"
+archivo_mp = f"Reporte_MP_{mes_nombre}.xlsx"## Desactivar cuando se requiera el Reporte_MP_mensual
 quincena = f"{mes_nombre}" ## Desactivar cuando se requiera el Resumen_RRE_mensual
 
 ## Este es el rango de dias en el que se trabajara, para el tema del ultimo dia siempre se le sumara 1
 ## Ejemplo primera quincena dia_fn = 16 el metodo range trabaja de esa forma
 dia_in =  1
-dia_fn = 32
+dia_fn = 31
 
 ## Listado de los archvios -Transacciones.csv
 ## Listado de los archivo a leer segun el rango especificado 
@@ -58,11 +58,9 @@ transacciones = []
 resumen = []
 
 ## Bucle para insertar todos los archivos en el DataFrame transacciones
-dtypes = {10: str, 11: str, 12: str}
 
 for transaccion in archivo_tr:
-    #df = pd.read_csv(transaccion)
-    df = pd.read_csv(transaccion, dtype=dtypes)
+    df = pd.read_csv(transaccion)
     transacciones.append(df)
 
 ## Bucle para insertar todos los archivos en el DataFrame extenciones
@@ -77,13 +75,26 @@ df_completo = pd.concat(transacciones, ignore_index=True)
 mes = pd.concat(extenciones, ignore_index=True)
 
 ## Serie_Hex de tarjetas unicas utilizando un filtro para solo obtener transacciones validas
-df_trfil = df_completo[df_completo['TIPO_TRANSACCION'] == '0'].copy()
-tarjetas_unicas = df_trfil['NUMERO_SERIE_HEX'].unique()
 
-## Crear DataFrame Tarjetas con todas las tarjetas unicas y poder compararla con las transacciones y asignarle el monto
-tarjetas = pd.DataFrame(tarjetas_unicas)
-num_trx = df_trfil['TIPO_TRANSACCION'].size 
+df_trfil = df_completo[df_completo['TIPO_TRANSACCION'] == 0 ].copy()
+df_trfil['TIPO_TRANSACCION'] = pd.to_numeric(df_trfil['TIPO_TRANSACCION'])
+
 tarjetas_unicas = pd.DataFrame({'NUMERO_SERIE_HEX': df_trfil['NUMERO_SERIE_HEX'].unique()})
+
+result = pd.merge(df_trfil, pd.DataFrame(tarjetas_unicas, columns=['NUMERO_SERIE_HEX']), on='NUMERO_SERIE_HEX', how='inner')
+
+for column in ['LINEA','ESTACION','AUTOBUS','RUTA','EQUIPO','CONTADOR_VALIDACIONES','PURCHASE_LOG','COUNTER_VALUE','COUNTER_AMOUNT']:
+    df_completo = df_completo.drop(column, axis=1)
+
+for datos in ['DEVICE_ID','LATITUDE','LONGITUDE']:
+    mes = mes.drop(datos,axis=1)    
+
+empty_field = df_completo.isnull().sum()
+mes_field = mes.isnull().sum()
+
+
+num_trx = df_trfil['TIPO_TRANSACCION'].size 
+## Crear DataFrame Tarjetas con todas las tarjetas unicas y poder compararla con las transacciones y asignarle el monto
 
 ## MONTOS
 ## Elimina duplicados en df_trfil basado en la columna 'NUMERO_SERIE_HEX'
@@ -96,7 +107,6 @@ ruta_filtrado = os.path.join(ruta_guardado, mes_filtrado)
 df_trfil.to_csv(ruta_filtrado, index=False)
 
 ## Luego, realiza la combinación con tarjetas_unicas
-result = pd.merge(df_trfil, pd.DataFrame(tarjetas_unicas, columns=['NUMERO_SERIE_HEX']), on='NUMERO_SERIE_HEX', how='inner')
 recargos = result['MONTO_TRANSACCION']
 
 ## Utilizamos la variable recargas para dividirla entre 100 y concertir de centavos a pesos
@@ -108,29 +118,30 @@ mtsfp = mts/100
 mean_montos = montos.mean()
 mean_mtsfp = mtsfp.mean()
 
-## Bucle para el analisis de todas las transacciones == 0
+## Bucle para el analisis de todas las transacciones '
 for df in transacciones:
     ## Filtrar las transacciones de tipo 0
-    df_filtro = df[df['TIPO_TRANSACCION'] == '0'].copy()
+    df_filtro = df[df['TIPO_TRANSACCION'] == 0].copy()
+    df_filtro['TIPO_TRANSACCION'] = pd.to_numeric(df_filtro['TIPO_TRANSACCION'])
     ## Sacaremos el total de transacciones con el metodo count 
     tr_totales = df_filtro['TIPO_TRANSACCION'].count()
     
     ## Convertir la columna FECHA_HORA_TRANSACCION a datetime
     df_filtro['FECHA_HORA_TRANSACCION'] = pd.to_datetime(df_filtro['FECHA_HORA_TRANSACCION'])
     df_filtro['FECHA_HORA_TRANSACCION'] = df_filtro['FECHA_HORA_TRANSACCION'].dt.strftime('%Y-%m-%d')
-    
-    ## Calcular el monto total de las transacciones
-    monto_total = df_filtro['MONTO_TRANSACCION'].sum()
-    
+
     ## Separar las transacciones en base al método
     df_fisico = df_filtro[df_filtro['LOCATION_ID'] == '201A00']
     df_digital = df_filtro[df_filtro['LOCATION_ID'] == '101800']
+    df_appcdmx = df_filtro[df_filtro['LOCATION_ID'] == '101801']
     
     ## Calcular el monto total por transacción física y agregar al DataFrame correspondiente
     monto_fisico = df_fisico['MONTO_TRANSACCION'].sum()
     
     ## Calcular el monto total por transacción digital y agregar al DataFrame correspondiente
     monto_digital = df_digital['MONTO_TRANSACCION'].sum()
+    ## 
+    monto_appcdmx = df_appcdmx['MONTO_TRANSACCION'].sum()
     
     ## Obtener los valores únicos de la fecha de transacción
     fechas_unicas = df_filtro['FECHA_HORA_TRANSACCION'].unique()
@@ -138,12 +149,14 @@ for df in transacciones:
     ## Agregar los resultados a la lista de resumen 
     resumen.append({
         'FECHA': ', '.join(fechas_unicas),
-        'Monto Total': monto_total / 100,
-        'TR Fisicas': df_fisico.shape[0],
-        'Montos Fisicos': monto_fisico /100,
         'TR Digitales': df_digital.shape[0],
-        'Montos Digitales': monto_digital/100,
-        'TR Totales': tr_totales
+        'TR Fisicas': df_fisico.shape[0],
+        'TR AppCDMX': df_appcdmx.shape[0],
+        'TR Totales': tr_totales,
+        'Montos Digitales': monto_digital / 100,
+        'Montos Fisicos': monto_fisico / 100,
+        'Montos AppCDMX': monto_appcdmx / 100,
+        'Monto Total': (monto_digital + monto_fisico + monto_appcdmx)/100,
     })
 
 ## Convertir el arreglo resumen en DataFrame
@@ -152,12 +165,14 @@ resultados = pd.DataFrame(resumen)
 ## Totales de transacciones fisicas para poder realizar operaciones
 tr_fisicas = resultados['TR Fisicas'].sum()
 tr_digitales = resultados['TR Digitales'].sum()
+tr_appcdmx = resultados['TR AppCDMX'].sum()
 tr_total = resultados['TR Totales'].sum()
 
 ## Obtener datos porcentuales de transacciones fisicas, digitales y el total
 pr_dig = tr_digitales / tr_total * 100 
 pr_fis = tr_fisicas / tr_total * 100 
-pr_total = pr_dig + pr_fis
+pr_app = tr_appcdmx / tr_total * 100 
+pr_total = pr_dig + pr_fis + pr_app
 
 ## Tabla de valores porcentuales para la comision de mercado pago
 ## Recargas Digitales
@@ -165,7 +180,7 @@ pr_total = pr_dig + pr_fis
 pr_dg1 = 2.2
 pr_dg2 = 2.1
 pr_dg3 = 2
-pr_dg4 = 1.
+pr_dg4 = 1.9
 
 ## Recargas Fisicas (Negocios)
 ## Porcentaje mensual de comision fisica
@@ -173,6 +188,11 @@ pr_fs1 = 2
 pr_fs2 = 1.9
 pr_fs3 = 1.8
 pr_fs4 = 1.7
+## Porcentaje mensual de comision app cdmx
+pr_ap1 = 2
+pr_ap2 = 1.9
+pr_ap3 = 1.8
+pr_ap4 = 1.7
 
 ## Limites de Rango, esta es la tabla que se ecnuentra en el presente contrato de Mercado Pago
 ## Los mismos rangos se utilizan para recargas fisicas y digitales 
@@ -184,7 +204,8 @@ r4 = 60000000
 ## Obtener totales en $ para fisicas, digitales y el total de la suma de ambas 
 tt_fisico = resultados['Montos Fisicos'].sum()
 tt_digital = resultados['Montos Digitales'].sum()
-mt_total = tt_fisico + tt_digital
+tt_appcdmx = resultados['Montos AppCDMX'].sum()
+mt_total = tt_fisico + tt_digital + tt_appcdmx
 
 ## Se realizan las condicionales para ajustar el porcentaje automaticamente segun el total segun sea el caso fisica o digital  
 ## Condicional de porcentaje Digital
@@ -206,23 +227,55 @@ elif tt_fisico <= r3:
     pr_com_fis = pr_fs3
 elif tt_fisico <= r4:
     pr_com_fis = pr_fs4
+    
+## Condicional de appcdmx
+if tt_appcdmx <= r1:
+    pr_com_app = pr_ap1
+elif tt_appcdmx <= r2:
+    pr_com_app = pr_ap2
+elif tt_appcdmx <= r3:
+    pr_com_app = pr_ap3
+elif tt_appcdmx <= r4:
+    pr_com_app = pr_ap4
 
 ## Comisiones Fisicas y Digitales
 com_fisico = (pr_com_fis/100)*tt_fisico
 com_digital = (pr_com_dig/100)*tt_digital
-com_total = com_fisico + com_digital
+com_appcdmx = (pr_com_app/100)*tt_appcdmx
+com_total = com_fisico + com_digital + com_appcdmx
 prm_digital = tt_digital / mt_total *100
 prm_fisico = tt_fisico / mt_total *100
-prm_total = prm_digital + prm_fisico
+prm_appcdmx = tt_appcdmx / mt_total *100
+prm_total = prm_digital + prm_fisico + prm_appcdmx
 
 ## Este es el filtro del cual se obtienen las transacciones que tienen una duracion mayor a 7 segundos 
 mayor_seven = mes['DURATION']>7
 
+## resumen
+
+resumen = mes['DURATION'].value_counts()
+resumen.name = '# de transacciones'
+resumen.index.name ='Tiempo'
+#resumen = resumen.rename(column={'DURATION': 'Tiempo'})
 ## Se realiza el conteo total de todas las transacciones que son amyores a los 7 segundos
 ntr_may_seven = mes.loc[mayor_seven,['DURATION']].count()
 
 ## Convierte la serie a un tipo de datos numérico
-list_mayor_seven = mes.loc[mayor_seven,['ID_TRANSACCION_ORGANISMO','DURATION']]
+list_mayor_seven = mes.loc[mayor_seven,['ID_TRANSACCION_ORGANISMO', 'DURATION','END_DATE']]
+## Convierte la serie a un tipo de datos numérico
+df_merge_succ = pd.merge(list_mayor_seven, df_completo, on='ID_TRANSACCION_ORGANISMO', how='inner')
+df_merge_fil = df_merge_succ[['ID_TRANSACCION_ORGANISMO', 'LOCATION_ID', 'MONTO_TRANSACCION', 'END_DATE', 'DURATION']]
+df_merge_fil['MONTO_TRANSACCION'] = df_merge_fil['MONTO_TRANSACCION'].apply(lambda x: x / 100)
+
+lista_tr_7s = f"RRE - Penalizaciones {mes_nombre}.xlsx"
+ruta_lista = os.path.join(ruta_guardado,lista_tr_7s)
+
+#res_mayor_sev = resultados.drop(['TR Fisicas','TR Digitales', 'TR Totales'], axis=1)
+#res_mayor_sev.columns = ['FECHA', 'RRFisica', 'RRDigital', 'RRE']
+
+with pd.ExcelWriter(ruta_lista) as writer:
+    #res_mayor_sev.to_excel(writer, index=False ,sheet_name=f'{mes_nombre}')
+    df_merge_fil.to_excel(writer, index=False ,sheet_name=f'Transacciones penalizables {mes_nombre}')
 
 #Resultados Transacciones 
 wb = Workbook()
@@ -239,19 +292,19 @@ hoja3 = wb.create_sheet(title="Promedio y Tarjetas")
 ## Agregar la informacion del total de transacciones y el porcentaje total que ocupan tanto fisicas y digitales
 ## Se ocupara la hoja 1 para guardar las tablas de montos y transacciones totales con sus porcentajes
 hoja['A1'] = "Tabla de Transacciones"
-hoja.append(['Tipo de Recarga','Digital','Fisica','Total'])
-hoja.append(['Cantidad de Recargas',tr_digitales,tr_fisicas,tr_total])
-hoja.append(['Proporcion',pr_dig,pr_fis,pr_total])
+hoja.append(['Tipo de Recarga','Digital','Fisica','AppCDMX','Total'])
+hoja.append(['Cantidad de Recargas',tr_digitales,tr_fisicas,tr_appcdmx,tr_total])
+hoja.append(['Proporcion',pr_dig,pr_fis,pr_app,pr_total])
 
 ## Crear un campo vacio para darle un espacio entre la primer y segunda tabla
 hoja.append([])
 
 ## Tabla con la informacion de el total de montos con sus porcentajes para fisicas y digitales en base al rango que ocupen
 hoja['A6'] = "Tabla de Montos y Proporciones"
-hoja.append(['Tipo de Recarga','Digital','Fisica','Total'])
-hoja.append(['Cantidad de Recargas',tt_digital,tt_fisico,mt_total])
-hoja.append(['Proporcion',prm_digital,prm_fisico,prm_total])
-hoja.append(['Comision para MP',com_digital,com_fisico,com_total])
+hoja.append(['Tipo de Recarga','Digital','Fisica','AppCDMX','Total'])
+hoja.append(['Cantidad de Recargas',tt_digital,tt_fisico,tt_appcdmx,mt_total])
+hoja.append(['Proporcion',prm_digital,prm_fisico,prm_appcdmx,prm_total])
+hoja.append(['Comision para MP',com_digital,com_fisico,com_appcdmx,com_total])
 
 ## En la hoja 2 se guardaran el N° total de transacciones que tienen una duracion mayor a 7 segundos
 hoja2['A1'] = "Total de Transacciones Mayores a 7 Segundos"
@@ -297,26 +350,8 @@ df_completo.to_csv(ruta_completa, index=False)
 ruta_mp = os.path.join(ruta_guardado,archivo_mp)
 wb.save(ruta_mp)
 
-'''#Section delete files
+ruta_tr = os.path.join(ruta_guardado,f"Transacciones_{mes_nombre}.csv")
+resumen.sort_index().to_csv(ruta_tr)
 
-#eliminacionde archivos
-archivos_a_eliminar = []
-## Genera las rutas de los archivos que deseas eliminar
-## Recuerda ocupar el mismo rango que en la parte de arriba para que los archivos leidos sean eliminados
-for d in range(dia_in, dia_fn):
-    archivo_csv = os.path.join(ruta_guardado, f"{y}{m}{d:02d}{a}")
-    archivo_extension = os.path.join(ruta_guardado, f"{y}{m}{d:02d}{ae}")
-    archivo_test = os.path.join(ruta_guardado, f"{y}{m}{d:02d}{at}") ## Agregar ## al principio en caso de no exisitir -Test-Transacciones.csv en la carpeta de trabajo 
-    archivos_a_eliminar.extend([archivo_csv, archivo_extension,archivo_test]) ## eliminar archivo_test si no se encuentra dentro de la carpeta
 
-## Elimina los archivos
-for archivo in archivos_a_eliminar:
-    try:
-        os.remove(archivo)
-        #print(f"Archivo {archivo} eliminado con éxito.")
-    except FileNotFoundError:
-        print(f"El archivo {archivo} no existe.")
-    except Exception as e:
-        print(f"Ocurrió un error al eliminar el archivo {archivo}: {str(e)}")
-'''
 print("Proceso realizado con Exito!!")
