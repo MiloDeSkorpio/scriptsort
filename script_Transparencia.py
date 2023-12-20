@@ -1,70 +1,58 @@
 # imporatr las librerias necesarias para le funcionamiento
 import os
 import pandas as pd
-# Directorio donde se encuentran los archivos CSV y la cual sera la base de trabajo del Script
-ruta_guardado = "Validadores/Octubre"
 
-# Definir el nombre del archivo que contendra la union de todos
-validadores = "Validadores.csv"
+mes_nombre = 'Noviembre'
+mes_n = '11'
+# Directorio donde se encuentran los archivos CSV y la cual sera la base de trabajo del Script
+ruta_guardado = f"Validadores/{mes_n} {mes_nombre}"
+
 # Definir los nombres de los archivos que se van a leer
 archivos_a_leer = [
-    "Acasa.csv",
-    "Informe 1.2.csv",
-    "Informe 1.3.csv",
-    "Informe 1.4.csv",
-    "Informe 1.5.csv",  
-    "Microsafe.csv"
+    "ORT_Validaciones_2da_qna_noviembre_2023_Conduent_Buenavista.csv",
+    "ORT_Validaciones_2da_qna_noviembre_2023_Conduent_Tacubaya.csv",
+    "ORT_Validaciones_2da_qna_noviembre_2023_Microsafe.csv",
+    "ORT_Validaciones_1ra_qna_noviembre_2023_Conduent_WC_Buenavista.csv",
+    "ORT_Validaciones_1ra_qna_noviembre_2023_Conduent_WC_Tacubaya.csv",
+    "ORT_Validaciones_1ra_qna_noviembre_2023_Microsafe.csv",
 ]
-
 # Lista para almacenar los DataFrames de los archivos
 dataframes = []
-##
-hex_recargas = [] 
 ## 
 hex_valids = []
 # Leer los archivos y almacenarlos en la lista de DataFrames
 for archivo in archivos_a_leer:
     archivo_path = os.path.join(ruta_guardado, archivo)
-    df = pd.read_csv(archivo_path)
+    df = pd.read_csv(archivo_path,encoding="latin-1")
     dataframes.append(df)
-## 
-df_all = pd.concat(dataframes,ignore_index=True)
-## 
-df_recargas = df_all[df_all['TIPO_TRANSACCION'] == '3']
-##
-tarjetas_unicas = pd.DataFrame({'NUMERO_SERIE_HEX': df_recargas['NUMERO_SERIE_HEX'].unique()})
-df_hex = pd.merge(df_all, pd.DataFrame(tarjetas_unicas, columns=['NUMERO_SERIE_HEX']), on='NUMERO_SERIE_HEX', how='inner')
-
-# Creamos una DataFrame con los datos de las tarjetas únicas
-df_tarjetas_unicas = pd.DataFrame(tarjetas_unicas)
-
-# Obtenemos los datos de cada tarjeta
-for tarjeta in df_tarjetas_unicas['NUMERO_SERIE_HEX']:
-    origen = df_hex.loc[df_hex['NUMERO_SERIE_HEX'] == tarjeta, 'ENVIRONMENT_ISSUER_ID'].iloc[0]
-    pto_vta = df_hex.loc[df_hex['NUMERO_SERIE_HEX'] == tarjeta, 'CONTRACT_SALE_SAM'].iloc[0]
-    fecha = df_hex.loc[df_hex['NUMERO_SERIE_HEX'] == tarjeta, 'FECHA_HORA_TRANSACCION'].iloc[0]
-    mto = df_hex.loc[df_hex['NUMERO_SERIE_HEX'] == tarjeta, 'MONTO_TRANSACCION'].iloc[0]
-
-    # Agregamos los datos a las DataFrames de recargas y validaciones
-    hex_recargas.append({
-        'NUMERO_SERIE_HEX': tarjeta,
-        'ENVIRONMENT_ISSUER_ID': origen,
-        'CONTRACT_SALE_SAM': pto_vta,
-    })
-    hex_valids.append({
-        'NUMERO_SERIE_HEX': tarjeta,
-        'MONTO_TRANSACCION': mto,
-        'FECHA_HORA_TRANSACCION': fecha,
-    })
-
     
-df_hex_fin = pd.DataFrame(hex_recargas)
-archivo_hex = f"Hex_val_Octubre.csv"
-ruta_hex = os.path.join(ruta_guardado, archivo_hex)
-df_hex_fin.to_csv(ruta_hex, index=False)
+df_all = pd.concat(dataframes,ignore_index=True)
+df_baños = df_all[df_all['TIPO_TRANSACCION'] == '5'].copy()
+df_baños.LINEA.replace('E', 'Zapata', inplace=True)
+df_baños.LINEA.replace('34', 'Buenavista', inplace=True)
+df_baños.LINEA.replace('36', 'Tacubaya', inplace=True)
+hex_baños = df_baños['NUMERO_SERIE_HEX']
 
-df_valid_fin = pd.DataFrame(hex_valids)
-archivo_valid = f"Hex_deb_Octubre.csv"
+df_hex_baños = pd.DataFrame(hex_baños)
+archivo_hex = f"Hex_baños_{mes_nombre}.csv"
+ruta_hex = os.path.join(ruta_guardado, archivo_hex)
+df_hex_baños.to_csv(ruta_hex, index=False)
+
+mto_baños = df_baños['MONTO_TRANSACCION']
+date = df_baños['FECHA_HORA_TRANSACCION']
+baño = df_baños['LINEA']
+
+hex_valids.append({
+    'NUMERO_SERIE_HEX': hex_baños,
+    'LINEA': baño,
+    'MONTO_TRANSACCION': mto_baños,
+    'FECHA_HORA_TRANSACCION': date,
+})
+
+print(type(hex_valids))
+hex_valids_df = [pd.DataFrame(d) for d in hex_valids]
+df_valid_fin = pd.concat(hex_valids_df, ignore_index=True)
+archivo_valid = f"Hex_montos_{mes_nombre}.csv"
 ruta_valid = os.path.join(ruta_guardado,archivo_valid)
 df_valid_fin.to_csv(ruta_valid, index=False)
 
