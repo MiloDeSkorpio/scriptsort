@@ -5,12 +5,12 @@ ruta_guardado = "Validadores/Diciembre"
 
 documento = []
 documento_linea = []
-archivo = os.path.join(ruta_guardado, 'VALIDACIONES DEL 04 AL 10 DE DICIEMBRE 2023.csv')
+archivo = os.path.join(ruta_guardado, 'ORT_Validaciones_2da_qna_diciembre_2023_gral.csv')
 df = pd.read_csv(archivo, low_memory=False, encoding='latin-1')
 
 # Convertir la columna FECHA_HORA_TRANSACCION a datetime
-df['FECHA_HORA_TRANSACCION'] = df['FECHA_HORA_TRANSACCION'].str.split(' ', expand=True)[0]
-df['FECHA_HORA_TRANSACCION'] = pd.to_datetime(df['FECHA_HORA_TRANSACCION'], format="%d/%m/%Y")
+df['FECHA_HORA_TRANSACCION'] = pd.to_datetime(df['FECHA_HORA_TRANSACCION'])
+df['FECHA_HORA_TRANSACCION'] = df['FECHA_HORA_TRANSACCION'].dt.strftime('%Y-%m-%d')
 
 # Obtener fechas unicas
 
@@ -18,21 +18,19 @@ fechas_unicas = df['FECHA_HORA_TRANSACCION'].unique()
 
 for fecha in fechas_unicas:
     # Filtrar el DataFrame por la fecha actual
-
     df_fecha = df[df['FECHA_HORA_TRANSACCION'] == fecha]
-
-    # Filtrar por tipo de transaccion
-    df_ban = df_fecha[df_fecha['TIPO_TRANSACCION'] == 5]
-    df_bus = df_fecha[df_fecha['TIPO_TRANSACCION'] == 3]
-    df_gra = df_fecha[df_fecha['TIPO_TRANSACCION'] == 4]
-    df_tra = df_fecha[df_fecha['TIPO_TRANSACCION'] == 7]
-    df_sal = df_fecha[df_fecha['TIPO_TRANSACCION'] == 11]
-    df_rfw = df_fecha[df_fecha['TIPO_TRANSACCION'] == 13]
-    df_sss = df_fecha[df_fecha['TIPO_TRANSACCION'] == 51]
-    df_asm = df_fecha[df_fecha['TIPO_TRANSACCION'] == 53]
-    df_tai = df_fecha[df_fecha['TIPO_TRANSACCION'] == 55]
-    df_tax = df_fecha[df_fecha['TIPO_TRANSACCION'] == 61]
-    df_pgo = df_fecha[df_fecha['TIPO_TRANSACCION'] == 70]
+       # Filtrar por tipo de transaccion
+    df_ban = df_fecha[df_fecha['TIPO_TRANSACCION'] == '5']
+    df_bus = df_fecha[df_fecha['TIPO_TRANSACCION'] == '3']
+    df_gra = df_fecha[df_fecha['TIPO_TRANSACCION'] == '4']
+    df_tra = df_fecha[df_fecha['TIPO_TRANSACCION'] == '7']
+    df_sal = df_fecha[df_fecha['TIPO_TRANSACCION'] == '11']
+    df_rfw = df_fecha[df_fecha['TIPO_TRANSACCION'] == '13']
+    df_sss = df_fecha[df_fecha['TIPO_TRANSACCION'] == '51']
+    df_asm = df_fecha[df_fecha['TIPO_TRANSACCION'] == '53']
+    df_tai = df_fecha[df_fecha['TIPO_TRANSACCION'] == '55']
+    df_tax = df_fecha[df_fecha['TIPO_TRANSACCION'] == '61']
+    df_pgo = df_fecha[df_fecha['TIPO_TRANSACCION'] == '70']
 
     # Montos
     monto_cetrams = sum(df_ban['MONTO_TRANSACCION']) / 100
@@ -54,7 +52,7 @@ for fecha in fechas_unicas:
         'Rechazo de tarjeta por recarga fuera de lista blanca': df_rfw.shape[0],
         'Sin saldo suficiente': df_sss.shape[0],
         'Transaccion abortada por saldo mayor': df_asm.shape[0],
-        #'Transaccion abortada por contrato invalido (firma erronea)': df_tai.shape[0],
+        'Transaccion abortada por contrato invalido (firma erronea)': df_tai.shape[0],
         'Transaccion abortada (cualquier otro caso)': df_tax.shape[0],
         'Pase gratuito por operacion': df_pgo.shape[0],
     })
@@ -76,7 +74,7 @@ sum_row = {
     'Rechazo de tarjeta por recarga fuera de lista blanca': resultados['Rechazo de tarjeta por recarga fuera de lista blanca'].sum(),
     'Sin saldo suficiente': resultados['Sin saldo suficiente'].sum(),
     'Transaccion abortada por saldo mayor': resultados['Transaccion abortada por saldo mayor'].sum(),
-    #'Transaccion abortada por contrato invalido (firma erronea)': resultados['Transaccion abortada por contrato invalido (firma erronea)'].sum(),
+    'Transaccion abortada por contrato invalido (firma erronea)': resultados['Transaccion abortada por contrato invalido (firma erronea)'].sum(),
     'Transaccion abortada (cualquier otro caso)': resultados['Transaccion abortada (cualquier otro caso)'].sum(),
     'Pase gratuito por operacion': resultados['Pase gratuito por operacion'].sum(),
 }
@@ -99,7 +97,6 @@ df.LINEA.replace('D', 'AMOPSA', inplace=True)
 df.LINEA.replace('E', 'CETRAM ZAPATA', inplace=True)
 df.LINEA.replace('34', 'CETRAM BUENAVISTA', inplace=True)
 df.LINEA.replace('36', 'CETRAM TACUBAYA', inplace=True)
-
 
 
 lineas = [ 
@@ -125,19 +122,19 @@ for linea in lineas:
     # Filtrar el DataFrame por la línea actual
     df_linea = df[df['LINEA'] == str(linea)]
 
-    lin_bus = df_linea[df_linea['TIPO_TRANSACCION'] == 3]
-    lin_ban = df_linea[df_linea['TIPO_TRANSACCION'] == 5]
+    lin_bus = df_linea[df_linea['TIPO_TRANSACCION'] == '3']
+    lin_ban = df_linea[df_linea['TIPO_TRANSACCION'] == '5']
     lin_mbu = sum(lin_bus['MONTO_TRANSACCION']) / 100
     lin_mba = sum(lin_ban['MONTO_TRANSACCION']) / 100
-    lin_gra = df_linea[df_linea['TIPO_TRANSACCION'] == 4]
-    lin_tra = df_linea[df_linea['TIPO_TRANSACCION'] == 7]
-    lin_sal = df_linea[df_linea['TIPO_TRANSACCION'] == 11]
-    lin_rfw = df_linea[df_linea['TIPO_TRANSACCION'] == 13]
-    lin_sss = df_linea[df_linea['TIPO_TRANSACCION'] == 51]
-    lin_asm = df_linea[df_linea['TIPO_TRANSACCION'] == 53]
-    lin_tai = df_linea[df_linea['TIPO_TRANSACCION'] == 55]
-    lin_tax = df_linea[df_linea['TIPO_TRANSACCION'] == 61]
-    lin_pgo = df_linea[df_linea['TIPO_TRANSACCION'] == 70]
+    lin_gra = df_linea[df_linea['TIPO_TRANSACCION'] == '4']
+    lin_tra = df_linea[df_linea['TIPO_TRANSACCION'] == '7']
+    lin_sal = df_linea[df_linea['TIPO_TRANSACCION'] == '11']
+    lin_rfw = df_linea[df_linea['TIPO_TRANSACCION'] == '13']
+    lin_sss = df_linea[df_linea['TIPO_TRANSACCION'] == '51']
+    lin_asm = df_linea[df_linea['TIPO_TRANSACCION'] == '53']
+    lin_tai = df_linea[df_linea['TIPO_TRANSACCION'] == '55']
+    lin_tax = df_linea[df_linea['TIPO_TRANSACCION'] == '61']
+    lin_pgo = df_linea[df_linea['TIPO_TRANSACCION'] == '70']
 
     documento_linea.append({
         'Linea': linea,
@@ -178,14 +175,13 @@ sum_rows = {
 
 resultados_lin = pd.concat([resultados_lin, pd.DataFrame([sum_rows])], ignore_index=True)
 
-
 # Save the DataFrame to a CSV file
-archivo_val = "Resumen_Val_Dic_04-10.csv"
+archivo_val = "Resumen_Val_Dic_16-31.csv"
 ruta_resultados = os.path.join(ruta_guardado, archivo_val)
 resultados.to_csv(ruta_resultados, index=False)
 
 # Save the DataFrame to a CSV file
-archivo_lin = "Resumen_Lin_Dic_04-10.csv"
+archivo_lin = "Resumen_Lin_Dic_16-31.csv"
 ruta_res_lin = os.path.join(ruta_guardado, archivo_lin)
 resultados_lin.to_csv(ruta_res_lin, index=False)
 

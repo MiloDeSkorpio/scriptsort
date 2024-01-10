@@ -3,11 +3,11 @@ import os
 import pandas as pd
 
 ## Nombre del mes con texto, se ocupara para leer la carpeta del mes y asignar el nombre a los archivos generados
-mes_nombre = "Noviembre"
+mes_nombre = "Enero"
 
 ## Modificar el contenido de m = "mes" * Para los meses que anteriores a octubre ocupar la sintaxis 09 = Septiembre 08 = Agosto
 ## Modificar el contenido de Y = "Año" 2023 / 2024 / 2025 
-m = "11"
+m = "01"
 y = "2023"
 
 ## Nombre de las extenciones de los archivos que ocupara el script para realizar 
@@ -16,119 +16,108 @@ ae = "-Transacciones-extension.csv"
 at = "-Test-Transacciones.csv"
 
 ## Ruta de la cual se extraeran todos los archivos y en la misma se guardaran los archivos
-ruta_guardado = f"Transacciones/{m} {mes_nombre}"
+ruta_guardado = f"Transacciones/{y}/{m} {mes_nombre}"
 
 ## Quincena a trabajar
 first = "1ra"
 second = "2da"
 
-## Definir el nombre de los archivos que seran guardados en la carpeta al finalizar el analisis
-mes_completo = f"{mes_nombre}_completo.csv"
-
-## Archivos quincenales agregar # al inicio cuando se desea trabajar por mes el script
-archivo_mp = f"Reporte_MP_{second}_qna_{mes_nombre}.xlsx"
-quincena = f"{second}_qna_{mes_nombre}"
-
-## Archivos mensuales eliminar # cuando se trabaje el script por mes
-#archivo_mp = f"Reporte_MP_{mes_nombre}.xlsx"## Desactivar cuando se requiera el Reporte_MP_mensual
-#quincena = f"{mes_nombre}" ## Desactivar cuando se requiera el Resumen_RRE_mensual
-
 ## Este es el rango de dias en el que se trabajara, para el tema del ultimo dia siempre se le sumara 1
 ## Ejemplo primera quincena dia_fn = 16 el metodo range trabaja de esa forma
-dia_in =  1
-dia_fn = 31
+dia_in = 5
+dia_fn = 8
+rango = dia_fn - dia_in
 
 ## Listado de los archvios -Transacciones.csv
 ## Listado de los archivo a leer segun el rango especificado 
 archivo_tr = [os.path.join(ruta_guardado, f"{y}{m}{d:02d}{a}") for d in range(dia_in, dia_fn)]
 
+## Areglo que se llenara con los archivos -Transacciones-extension.csv
+transacciones = []
+
 ## Leer Archivos de Extencion para obtener la duracion de las transacciones
 ## Lista de nombres de archivo
 archivo_ex = [os.path.join(ruta_guardado, f"{y}{m}{d:02d}{ae}") for d in range(dia_in, dia_fn)]
 
-## Areglo que se llenara con los archivos -Transacciones-extension.csv
+## Arreglo que se llenara con los archivos -Transacciones.csv
 extenciones = []
 
-## Arreglo que se llenara con los archivos -Transacciones.csv
-transacciones = []
-
-## Arreglo que recopilara los datos Resumidos del filtro y se ocupara para realizar el RRE
-resumen = []
-##
-hex_recargas = []
 ## Bucle para insertar todos los archivos en el DataFrame transacciones
-
 for transaccion in archivo_tr:
     df = pd.read_csv(transaccion)
     transacciones.append(df)
 
+## Concatenación de documentos extraídos del arreglo transacciones y creando un solo DataFrame con información de toda la quincena
+#df_transacciones = pd.concat(transacciones, ignore_index=True)
+
 ## Bucle para insertar todos los archivos en el DataFrame extenciones
 for extencion in archivo_ex:
     df = pd.read_csv(extencion)
-    extenciones.append(df)   
-    
-## Concatenación de documentos extraídos del arreglo transacciones y creando un solo DataFrame con información de toda la quincena
-df_transacciones = pd.concat(transacciones, ignore_index=True)
-ruta_transacciones = os.path.join(ruta_guardado, mes_completo)
-df_transacciones.to_csv(ruta_transacciones)
-
+    extenciones.append(df)  
+     
 ## Concatenación de documentos extraídos del arreglo extenciones y creando un solo DataFrame con información de todo el mes
 df_extenciones = pd.concat(extenciones, ignore_index=True)
 
-## Imprime el tipo de transacciones
-print(df_transacciones["TIPO_TRANSACCION"].value_counts())
+## Arreglo para almacenar el RRE
+resumen = []
 
-#df_recargas = df_transacciones[df_transacciones['TIPO_TRANSACCION'] == '0'].copy()
-## Documento Resumen recarga externa
+## Inicia el condicional para los dias sueltos
+if rango < 13 :
+    ## Bucle para el analisis de todas las transacciones
+    for df in transacciones:
+        ## Filtrar las transacciones de tipo 0
+        df['TIPO_TRANSACCION'] = df['TIPO_TRANSACCION'].astype('str')
+        df_filtro = df[df['TIPO_TRANSACCION'] == '0'].copy()
+        
+        ## Sacaremos el total de transacciones con el metodo count 
+        tr_totales = df_filtro['TIPO_TRANSACCION'].count()
+        
+        ## Convertir la columna FECHA_HORA_TRANSACCION a datetime
+        df_filtro['FECHA_HORA_TRANSACCION'] = pd.to_datetime(df_filtro['FECHA_HORA_TRANSACCION'])
+        df_filtro['FECHA_HORA_TRANSACCION'] = df_filtro['FECHA_HORA_TRANSACCION'].dt.strftime('%Y-%m-%d')
 
-for day in transacciones:
-    df_recargas = day[day['TIPO_TRANSACCION'] == '0'].copy()
-    ## Separar Transacciones fisicas y digitales
-    #df_mix = df_recargas.apply(lambda x: 'Comercios' if x['LOCATION_ID'] == '201A00' else 'Digitales', axis=1)
-    df_m_fisico = df_recargas[df_recargas['LOCATION_ID'] == '201A00']
-    df_m_digital = df_recargas[df_recargas['LOCATION_ID'] == '101800']
-    ## Crear filtro para las transacciones de recarga
-    md = sum(df_m_digital['MONTO_TRANSACCION'] / 100)
-    mf = sum(df_m_fisico['MONTO_TRANSACCION'] / 100)
-    ## Convertir fecha
-    df_recargas['FECHA_HORA_TRANSACCION'] = pd.to_datetime(df_recargas['FECHA_HORA_TRANSACCION'])
-    df_recargas['FECHA_HORA_TRANSACCION'] = df_recargas['FECHA_HORA_TRANSACCION'].dt.strftime('%Y-%m-%d')
-    ## Obtener los valores únicos de la fecha de transacción  
-    fechas_unicas = df_recargas['FECHA_HORA_TRANSACCION'].unique()
-    ## Conteo de Transacciones
-    ttd = df_m_digital.shape[0]
-    ttf = df_m_fisico.shape[0]
+        ## Separar las transacciones en base al método
+        df_fisico = df_filtro[df_filtro['LOCATION_ID'] == '201A00']
+        df_digital = df_filtro[df_filtro['LOCATION_ID'] == '101800']
+        df_appcdmx = df_filtro[df_filtro['LOCATION_ID'] == '101801']
+        
+        ## Calcular el monto total por transacción física y agregar al DataFrame correspondiente
+        monto_fisico = df_fisico['MONTO_TRANSACCION'].sum()
+        
+        ## Calcular el monto total por transacción digital y agregar al DataFrame correspondiente
+        monto_digital = df_digital['MONTO_TRANSACCION'].sum()
+        ## 
+        monto_appcdmx = df_appcdmx['MONTO_TRANSACCION'].sum()
+        
+        ## Obtener los valores únicos de la fecha de transacción
+        fechas_unicas = df_filtro['FECHA_HORA_TRANSACCION'].unique()
 
-    resumen.append({
-        'FECHA': ', '.join(fechas_unicas),
-        'Montos RRD': md ,
-        'Montos RRF': mf,
-        'Total Montos': md + mf,
-        'Transacciones RRD': ttd,
-        'Transacciones RRF': ttf,
-        'Total Transacciones': ttd + ttf,
-    })
+        ## Agregar los resultados a la lista de resumen 
+        resumen.append({
+            'FECHA': ', '.join(fechas_unicas),
+            'TR Digitales': df_digital.shape[0],
+            'TR Fisicas': df_fisico.shape[0],
+            'TR AppCDMX': df_appcdmx.shape[0],
+            'TR Totales': tr_totales,
+            'Montos Digitales': monto_digital / 100,
+            'Montos Fisicos': monto_fisico / 100,
+            'Montos AppCDMX': monto_appcdmx / 100,
+            'Monto Total': (monto_digital + monto_fisico + monto_appcdmx)/100,
+        })
 
-df_resumen = pd.DataFrame(resumen)
-archivo_rre = f"Resumen_RRE_new_{quincena}.csv"
-ruta_resumen = os.path.join(ruta_guardado, archivo_rre)
-df_resumen.to_csv(ruta_resumen, index=False)
-## 
-df_transacciones.LOCATION_ID.replace('101800', 'Digitales', inplace=True)
-df_transacciones.LOCATION_ID.replace('201A00', 'Comercios', inplace=True)
-df_transacciones = df_transacciones.drop(df_transacciones[df_transacciones.LOCATION_ID == 101801].index)
-df_transacciones.MONTO_TRANSACCION = df_transacciones.MONTO_TRANSACCION.astype('float64') / 100
-df_filtrado = df_transacciones.loc[:, ['NUMERO_SERIE_HEX', 'LOCATION_ID', 'MONTO_TRANSACCION','FECHA_HORA_TRANSACCION']]
-
-# Imprimir el DataFrame filtrado
-print(df_filtrado)
-
-       
-df_hex_fin = pd.DataFrame(df_filtrado)
-archivo_hex = f"Hex_ID_{mes_nombre}.csv"
-ruta_hex = os.path.join(ruta_guardado, archivo_hex)
-df_hex_fin.to_csv(ruta_hex, index=False)
-
-
-
+    ## Convertir el arreglo resumen en DataFrame
+    resultados = pd.DataFrame(resumen)
+    
+    ## Definir el nombre de los archivos que seran guardados en la carpeta al finalizar el analisis
+    archivo_sem = f"RRE_{mes_nombre}_{dia_in}-{dia_fn}.csv"
+    ruta_res_sem = os.path.join(ruta_guardado, archivo_sem)
+    resultados.to_csv(ruta_res_sem, index=False)
+        
+                
+## Inicia el condicional para las Quincenas        
+elif rango >= 13 and rango <= 16:
+    print('Es quincena')
+## Inicia el Condicional para los meses    
+elif rango > 16:
+    print('Es Mes')
 
