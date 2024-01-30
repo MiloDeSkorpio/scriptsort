@@ -1,42 +1,47 @@
 import os
 import pandas as pd
 
-##
+## Definimos el mes con nombre
 mes = "Enero"
-##
+## Definimos el mes con número
 m = "01"
-##
+## Definimos el año
 y = "2024"
 
-##
+## La ruta de trabaajo es la ruta donde se leen y se generan los archivos
 ruta_trabajo = f"Validadores/{y}/{m} {mes}"
 
-##
+## Es el periodo en el que se realiza el analisis
 periodo = "15_al_21_enero"
 
-## Arcchivo a subir 
+## Archivo a subir 
 file_to_upload = 'Validaciones del 15 al 21 de enero 2024.csv'
 
 ## metodo para asignar la ruta al archivo
 archivo = os.path.join(ruta_trabajo, file_to_upload)
 df = pd.read_csv(archivo, low_memory=False, encoding='latin-1')
 
+## Convetir la fecha a aun formato donde se puedan leer de forma unica
 df['FECHA_HORA_TRANSACCION'] = pd.to_datetime(df['FECHA_HORA_TRANSACCION'])
 df['FECHA_HORA_TRANSACCION'] = df['FECHA_HORA_TRANSACCION'].dt.strftime('%Y-%m-%d')
-# Obtener fechas unicas
+
+## Obtener fechas unicas
 fechas_unicas = df['FECHA_HORA_TRANSACCION'].unique()
 
+## definimos un arreglo documento para almancenar los resultados del primer analisis
 documento = []
 for fecha in fechas_unicas:
-    # Filtrar el DataFrame por la fecha actual
+    ## Filtrar el DataFrame por la fecha actual
     df['TIPO_TRANSACCION'] = df['TIPO_TRANSACCION'].astype('str')
     df_fecha = df[df['FECHA_HORA_TRANSACCION'] == fecha]
-    # Filtrar por tipo de transaccion
+    
+    ## Filtrar por tipo de transaccion
     df_bus = df_fecha[df_fecha['TIPO_TRANSACCION'] == '3'] # Debito en Bus
     df_ban = df_fecha[df_fecha['TIPO_TRANSACCION'] == '5'] # debito en baño
     df_pgo = df_fecha[df_fecha['TIPO_TRANSACCION'] == '70'] # Gratuidad de operacion
     df_tra = df_fecha[df_fecha['TIPO_TRANSACCION'] == '7'] # Transbordo
     df_sal = df_fecha[df_fecha['TIPO_TRANSACCION'] == '11'] # Salida
+    
     ## transacciones no exitosas, no permiten acceso
     df_gra = df_fecha[df_fecha['TIPO_TRANSACCION'] == '0D'] # rechazo de tarjeta en lista negra 
     df_rfw = df_fecha[df_fecha['TIPO_TRANSACCION'] == '13'] # rechazo de tarjeta fuera de la lista blanca
@@ -100,7 +105,6 @@ sum_row = {
 
 resultados = pd.concat([resultados, pd.DataFrame([sum_row])], ignore_index=True)
 
-print(resultados)
 # Guarda el DataFrame a CSV 
 archivo_val = f"Resumen_Val_{periodo}.csv"
 ruta_resultados = os.path.join(ruta_trabajo, archivo_val)
@@ -210,17 +214,226 @@ sum_rows = {
 
 resultados_lin = pd.concat([resultados_lin, pd.DataFrame([sum_rows])], ignore_index=True)
 
-print(resultados_lin)
-archivo_lin = f"Resumen_Lin_Enero_{periodo}.csv"
-ruta_res_lin = os.path.join(ruta_trabajo, archivo_lin)
-resultados_lin.to_csv(ruta_res_lin, index=False)
+## Creamos un arreglo que contenga la estructura que tienen o a quien pertenecen segun el integrador
+integradores = [
+    [
+        'MIIT',
+        'SAUSA',
+        'ATROLSA',
+        'CEUSA',
+        'COPATTSA',
+        'AMOPSA',
+        'CETRAM ZAPATA',
+    ],
+    [
+        'AULSA',
+        'CODIVERSA',
+        'TVO',
+        'CETRAM BUENAVISTA',
+        'CETRAM TACUBAYA',
+    ],
+    [
+        'ABC',
+    ],
+     [
+        'TRIOXA',
+    ],
+    [
+        'ACASA',
+    ],
+    [
+        'COPESA',
+    ],
+]
 
+## Definimos el integrador segun su posicion en el arreglo anterior
+microsafe = integradores[0]
+conduent = integradores[1]
+jm = integradores[2]
+bea = integradores[3]
+mpeso= integradores[4]
+insitra= integradores[5]
+
+## Creamos una funcion para realizar el analisis por integrador
+def resumen_integrador(df_integrador,df_final):
+    """ 
+    Args:
+        df_integrador: ejemplo microsafe 
+        df_final: Es el frame donde seguardara el resultado del analisis 
+    """
+    ## ciclo for que itera sobre la lista de integradores
+    for linea in df_integrador:
+        ## obtenemos un nuevo dataframe que contenga solamente la linea igual al integrador
+        df_int = df[df['LINEA'] == str(linea)]
+        ## Obtenemos los autobuses unicos para crear una lista
+        autobuses = df_int['AUTOBUS'].unique()
+        ## Ciclo for que itera sobre la lista de autobuses 
+        for bus in autobuses:
+            df_buses = df_int[df_int['AUTOBUS'] == bus]
+            ##
+            df_bus = df_buses[df_buses['TIPO_TRANSACCION'] == '3'] # Debito en Bus
+            df_ban = df_buses[df_buses['TIPO_TRANSACCION'] == '5'] # debito en baño
+            df_pgo = df_buses[df_buses['TIPO_TRANSACCION'] == '70'] # Gratuidad de operacion
+            df_tra = df_buses[df_buses['TIPO_TRANSACCION'] == '7'] # Transbordo
+            df_sal = df_buses[df_buses['TIPO_TRANSACCION'] == '11'] # Salida
+            ## transacciones no exitosas, no permiten acceso
+            df_gra = df_buses[df_buses['TIPO_TRANSACCION'] == '0D'] # rechazo de tarjeta en lista negra 
+            df_rfw = df_buses[df_buses['TIPO_TRANSACCION'] == '13'] # rechazo de tarjeta fuera de la lista blanca
+            df_sss = df_buses[df_buses['TIPO_TRANSACCION'] == '51'] # transaccio abortada por saldo insuficiente
+            df_asm = df_buses[df_buses['TIPO_TRANSACCION'] == '53'] # Transaccion abortada por saldo mayor al maximo permitido
+            df_ati = df_buses[df_buses['TIPO_TRANSACCION'] == '54'] # transaccion abortada por aplicacion de transporte invalido
+            df_tai = df_buses[df_buses['TIPO_TRANSACCION'] == '55'] # Transaccion abortada por contrato invalido
+            df_tax = df_buses[df_buses['TIPO_TRANSACCION'] == '61'] # Transaccion abortada por cualquier otro caso
+            df_tve = df_buses[df_buses['TIPO_TRANSACCION'] == '60'] # Transaccion abortada por vigencia expirada
+            df_ff = df_buses[df_buses['TIPO_TRANSACCION'] == 'FF'] # Transaccion sin descripcion
+            ## montos
+            df_final.append({
+                'Autobus': bus,
+                'Linea': linea,
+                'Debitos en autobus': df_bus.shape[0],
+                'Debitos en baño': df_ban.shape[0],
+                'Gratuidad': df_pgo.shape[0],
+                'Transbordo': df_tra.shape[0],
+                'Salida': df_sal.shape[0],
+                'Rechazo de tarjeta en lista negra': df_gra.shape[0],
+                'Rechazo de tarjeta por recarga fuera de lista blanca': df_rfw.shape[0],
+                'Sin saldo suficiente': df_sss.shape[0],
+                'Transaccion abortada por saldo mayor': df_asm.shape[0],
+                'Transaccion abortada por aplicacion de transporte invalido': df_ati.shape[0],
+                'Transaccion abortada por contrato invalido (firma erronea)': df_tai.shape[0],
+                'Transaccion abortada (cualquier otro caso)': df_tax.shape[0],
+                'Transaccion abortada por vigencia expirada': df_tve.shape[0],
+                'FF': df_ff.shape[0],
+            })
+        res_microsafe = pd.DataFrame(df_final)
+        # Calcula los totales
+        sum_row_mi = {
+            'Autobus': "#",
+            'Linea': 'Total',
+            'Debitos en autobus': res_microsafe['Debitos en autobus'].sum(),
+            'Debitos en baño': res_microsafe['Debitos en baño'].sum(),
+            'Gratuidad': res_microsafe['Gratuidad'].sum(),
+            'Transbordo': res_microsafe['Transbordo'].sum(),
+            'Salida': res_microsafe['Salida'].sum(),
+            'Rechazo de tarjeta en lista negra': res_microsafe['Rechazo de tarjeta en lista negra'].sum(),
+            'Rechazo de tarjeta por recarga fuera de lista blanca': res_microsafe['Rechazo de tarjeta por recarga fuera de lista blanca'].sum(),
+            'Sin saldo suficiente': res_microsafe['Sin saldo suficiente'].sum(),
+            'Transaccion abortada por saldo mayor': res_microsafe['Transaccion abortada por saldo mayor'].sum(),
+            'Transaccion abortada por aplicacion de transporte invalido': res_microsafe['Transaccion abortada por aplicacion de transporte invalido'].sum(),
+            'Transaccion abortada por contrato invalido (firma erronea)': res_microsafe['Transaccion abortada por contrato invalido (firma erronea)'].sum(),
+            'Transaccion abortada (cualquier otro caso)': res_microsafe['Transaccion abortada (cualquier otro caso)'].sum(),
+            'Transaccion abortada por vigencia expirada': res_microsafe['Transaccion abortada por vigencia expirada'].sum(),
+            'FF': res_microsafe['FF'].sum(),
+        }
+        ## Cambiar metodo de guardado XLSX con hojas por integrador
+        res_microsafe_fn = pd.concat([res_microsafe, pd.DataFrame([sum_row_mi])], ignore_index=True)
+    return res_microsafe_fn
+
+
+df_microsafe = []    
+resumen_integrador(microsafe,df_microsafe)
+df_micro = pd.DataFrame(df_microsafe)
+bus_micro = len(df_micro)
+
+
+df_conduent = []
+resumen_integrador(conduent,df_conduent)
+df_cond = pd.DataFrame(df_conduent)
+bus_cond = len(df_cond)
+
+
+
+df_jm = []
+resumen_integrador(jm,df_jm)
+df_jotaeme = pd.DataFrame(df_jm)
+bus_jotaeme = len(df_jotaeme)
+
+
+
+df_bea = []
+resumen_integrador(bea,df_bea)
+df_be = pd.DataFrame(df_bea)
+bus_be = len(df_be)
+
+
+
+df_mpeso = []
+resumen_integrador(mpeso,df_mpeso)
+df_mpe = pd.DataFrame(df_mpeso)
+bus_mpe = len(df_mpe)
+
+
+
+df_insitra = []
+resumen_integrador(insitra,df_insitra)
+df_insi = pd.DataFrame(df_insitra)
+bus_insi = len(df_insi)
+
+
+
+def totalTran_no_validas(df):
+    tb1 = df['Rechazo de tarjeta en lista negra'].sum()
+    tb2 = df['Rechazo de tarjeta por recarga fuera de lista blanca'].sum()
+    tb3 = df['Sin saldo suficiente'].sum()
+    tb4 = df['Transaccion abortada por saldo mayor'].sum()
+    tb5 = df['Transaccion abortada por aplicacion de transporte invalido'].sum()
+    tb6 = df['Transaccion abortada por contrato invalido (firma erronea)'].sum()
+    tb7 = df['Transaccion abortada (cualquier otro caso)'].sum()
+    tb8 = df['Transaccion abortada por vigencia expirada'].sum()
+    tb9 = df['FF'].sum()
+    total = tb1 + tb2 + tb3 + tb4 + tb5 + tb6 + tb7 + tb8 + tb9
+    return total
+
+def totalTran_validas(df):
+    tt1 = df['Debitos en autobus'].sum()
+    tt2 = df['Debitos en baño'].sum()
+    tt3 = df['Gratuidad'].sum()
+    tt4 = df['Transbordo'].sum()
+    tt5 = df['Salida'].sum()
+    total = tt1 + tt2 + tt3 + tt4 + tt5
+    return total
+
+## 
+ttnv_insi = totalTran_no_validas(df_insi)
+ttnv_mpe = totalTran_no_validas(df_mpe)
+ttnv_be = totalTran_no_validas(df_be)
+ttnv_jotaeme = totalTran_no_validas(df_jotaeme)
+ttnv_cond = totalTran_no_validas(df_cond)
+ttnv_micro = totalTran_no_validas(df_micro)
+ttnv = ttnv_insi + ttnv_mpe + ttnv_be + ttnv_jotaeme + ttnv_cond + ttnv_micro
+
+## 
+ttv_insi = totalTran_validas(df_insi)
+ttv_mpe = totalTran_validas(df_mpe)
+ttv_be = totalTran_validas(df_be)
+ttv_jotaeme = totalTran_validas(df_jotaeme)
+ttv_cond = totalTran_validas(df_cond)
+ttv_micro = totalTran_validas(df_micro)
+ttv = ttv_insi + ttv_mpe +ttv_be + ttv_jotaeme + ttv_cond + ttv_micro
+
+
+resumen = {
+    'Integrador': ['Microsafe','Conduent','Insitra','Mpeso','Bea','JM','Total'],
+    '# No Exitosas': [ttnv_micro,ttnv_cond,ttnv_insi,ttnv_mpe,ttnv_be,ttnv_jotaeme,ttnv],
+    '% No Exitosas': [ttnv_micro/ttnv,ttnv_cond/ttnv,ttnv_insi/ttnv,ttnv_mpe/ttnv,ttnv_be/ttnv,ttnv_jotaeme/ttnv,''],
+    'No Exitosas x Unidad': [ttnv_micro/bus_micro,ttnv_cond/bus_cond,ttnv_insi/bus_insi,ttnv_mpe/bus_mpe,ttnv_be/bus_be,ttnv_jotaeme/bus_jotaeme,''],
+    '# Exitosas': [ttv_micro,ttv_cond,ttv_insi,ttv_mpe,ttv_be,ttv_jotaeme,ttv],
+    '% Exitosas': [ttv_micro/ttv,ttv_cond/ttv,ttv_insi/ttv,ttv_mpe/ttv,ttv_be/ttv,ttv_jotaeme/ttv,''],
+}
+
+res_int = pd.DataFrame(resumen)
+
+lista = f"Analisis_validaciones_{periodo}_{mes}.xlsx"
+ruta_lista = os.path.join(ruta_trabajo,lista)
+with pd.ExcelWriter(ruta_lista) as writer:
+    res_int.to_excel(writer, index=False ,sheet_name=f'Resumen Integrador {mes}')
+    resultados.to_excel(writer, index=False ,sheet_name=f'Resumen Validaciones {mes}')
+    resultados_lin.to_excel(writer, index=False ,sheet_name=f'Resumen Linea {mes}')
+    df_micro.to_excel(writer, index=False ,sheet_name=f'Transacciones Microsafe {mes}')
+    df_cond.to_excel(writer, index=False ,sheet_name=f'Transacciones  Conduent {mes}')
+    df_insi.to_excel(writer, index=False ,sheet_name=f'Transacciones Insitra {mes}')
+    df_mpe.to_excel(writer, index=False ,sheet_name=f'Transacciones Mpeso {mes}')
+    df_be.to_excel(writer, index=False ,sheet_name=f'Transacciones Bea {mes}')
+    df_jotaeme.to_excel(writer, index=False ,sheet_name=f'Transacciones JM {mes}')
+    
 print('Proceso Finalizado!!')
-
-# df_gra = df[df['TIPO_TRANSACCION'] == '51']
-# df_lin_1 = df_gra[df_gra['LINEA'] == '1']
-# df_bs = df_lin_1['AUTOBUS'].value_counts()
-# print(df_gra)
-# print(df_lin_1)
-# print(df_bs)
-# print(len(df_bs))
