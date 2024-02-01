@@ -1,25 +1,24 @@
 import os
 import pandas as pd
 
-ruta_guardado = "Validadores/Diciembre"
-
-documento = []
-documento_linea = []
-archivo = os.path.join(ruta_guardado, 'ORT_Validaciones_2da_qna_diciembre_2023_gral.csv')
+ruta_trabajo = "Validadores/2024/01 Enero"
+periodo = "1ra_qna_enero"
+file_to_upload = 'Validaciones de la 1ra qna de enero 2024.csv'
+archivo = os.path.join(ruta_trabajo, file_to_upload)
 df = pd.read_csv(archivo, low_memory=False, encoding='latin-1')
+
 
 # Convertir la columna FECHA_HORA_TRANSACCION a datetime
 df['FECHA_HORA_TRANSACCION'] = pd.to_datetime(df['FECHA_HORA_TRANSACCION'])
 df['FECHA_HORA_TRANSACCION'] = df['FECHA_HORA_TRANSACCION'].dt.strftime('%Y-%m-%d')
-
 # Obtener fechas unicas
-
 fechas_unicas = df['FECHA_HORA_TRANSACCION'].unique()
 
+documento = []
 for fecha in fechas_unicas:
     # Filtrar el DataFrame por la fecha actual
     df_fecha = df[df['FECHA_HORA_TRANSACCION'] == fecha]
-       # Filtrar por tipo de transaccion
+    # Filtrar por tipo de transaccion
     df_ban = df_fecha[df_fecha['TIPO_TRANSACCION'] == '5']
     df_bus = df_fecha[df_fecha['TIPO_TRANSACCION'] == '3']
     df_gra = df_fecha[df_fecha['TIPO_TRANSACCION'] == '4']
@@ -31,6 +30,7 @@ for fecha in fechas_unicas:
     df_tai = df_fecha[df_fecha['TIPO_TRANSACCION'] == '55']
     df_tax = df_fecha[df_fecha['TIPO_TRANSACCION'] == '61']
     df_pgo = df_fecha[df_fecha['TIPO_TRANSACCION'] == '70']
+    df_ff = df_fecha[df_fecha['TIPO_TRANSACCION'] == 'FF']
 
     # Montos
     monto_cetrams = sum(df_ban['MONTO_TRANSACCION']) / 100
@@ -55,13 +55,13 @@ for fecha in fechas_unicas:
         'Transaccion abortada por contrato invalido (firma erronea)': df_tai.shape[0],
         'Transaccion abortada (cualquier otro caso)': df_tax.shape[0],
         'Pase gratuito por operacion': df_pgo.shape[0],
+        'FF': df_ff.shape[0],
     })
 # Create a DataFrame from the list of dictionaries
 resultados = pd.DataFrame(documento)
-# Sort the DataFrame by the 'Fecha' column in ascending order
+# orena el DataFrame por 'Fecha' en modo ascendente 
 resultados = resultados.sort_values(by='Fecha')
-
-# Calculate and append the row for the sum of all values
+# Calcula todos los totales
 sum_row = {
     'Fecha': 'Total',
     'Debitos en autobus': resultados['Debitos en autobus'].sum(),
@@ -77,9 +77,11 @@ sum_row = {
     'Transaccion abortada por contrato invalido (firma erronea)': resultados['Transaccion abortada por contrato invalido (firma erronea)'].sum(),
     'Transaccion abortada (cualquier otro caso)': resultados['Transaccion abortada (cualquier otro caso)'].sum(),
     'Pase gratuito por operacion': resultados['Pase gratuito por operacion'].sum(),
+    'FF': resultados['FF'].sum(),
 }
 
 resultados = pd.concat([resultados, pd.DataFrame([sum_row])], ignore_index=True)
+
 
 df.LINEA.replace('1', 'MIIT', inplace=True)
 df.LINEA.replace('2', 'SAUSA', inplace=True)
@@ -97,7 +99,6 @@ df.LINEA.replace('D', 'AMOPSA', inplace=True)
 df.LINEA.replace('E', 'CETRAM ZAPATA', inplace=True)
 df.LINEA.replace('34', 'CETRAM BUENAVISTA', inplace=True)
 df.LINEA.replace('36', 'CETRAM TACUBAYA', inplace=True)
-
 
 lineas = [ 
           'MIIT', 
@@ -118,6 +119,7 @@ lineas = [
           'CETRAM TACUBAYA'
         ]
 
+documento_linea = []
 for linea in lineas:
     # Filtrar el DataFrame por la línea actual
     df_linea = df[df['LINEA'] == str(linea)]
@@ -135,6 +137,7 @@ for linea in lineas:
     lin_tai = df_linea[df_linea['TIPO_TRANSACCION'] == '55']
     lin_tax = df_linea[df_linea['TIPO_TRANSACCION'] == '61']
     lin_pgo = df_linea[df_linea['TIPO_TRANSACCION'] == '70']
+    lin_ff = df_linea[df_linea['TIPO_TRANSACCION'] == 'FF']
 
     documento_linea.append({
         'Linea': linea,
@@ -151,11 +154,11 @@ for linea in lineas:
         'Transaccion abortada por contrato invalido (firma erronea)': lin_tai.shape[0],
         'Transaccion abortada (cualquier otro caso)': lin_tax.shape[0],
         'Pase gratuito por operacion': lin_pgo.shape[0],
+        'FF': lin_ff.shape[0],
     })
 
 resultados_lin = pd.DataFrame(documento_linea)
-#resultados_lin = resultados_lin.sort_values(by='Valor de Debitos en autobus', ascending=False)
-# Calculate and append the row for the sum of all values
+# Calcula los totales
 sum_rows = {
     'Linea': 'Total',
     'Debitos en autobus': resultados_lin['Debitos en autobus'].sum(),
@@ -171,18 +174,19 @@ sum_rows = {
     'Transaccion abortada por contrato invalido (firma erronea)': resultados_lin['Transaccion abortada por contrato invalido (firma erronea)'].sum(),
     'Transaccion abortada (cualquier otro caso)': resultados_lin['Transaccion abortada (cualquier otro caso)'].sum(),
     'Pase gratuito por operacion': resultados_lin['Pase gratuito por operacion'].sum(),
+    'FF': resultados_lin['FF'].sum(),
 }
 
 resultados_lin = pd.concat([resultados_lin, pd.DataFrame([sum_rows])], ignore_index=True)
 
-# Save the DataFrame to a CSV file
-archivo_val = "Resumen_Val_Dic_16-31.csv"
-ruta_resultados = os.path.join(ruta_guardado, archivo_val)
+# Guarda el DataFrame a CSV 
+archivo_val = f"Resumen_Val_{periodo}.csv"
+ruta_resultados = os.path.join(ruta_trabajo, archivo_val)
 resultados.to_csv(ruta_resultados, index=False)
 
-# Save the DataFrame to a CSV file
-archivo_lin = "Resumen_Lin_Dic_16-31.csv"
-ruta_res_lin = os.path.join(ruta_guardado, archivo_lin)
+# Guarda el DataFrame a CSV 
+archivo_lin = f"Resumen_Lin_Enero_{periodo}.csv"
+ruta_res_lin = os.path.join(ruta_trabajo, archivo_lin)
 resultados_lin.to_csv(ruta_res_lin, index=False)
 
 print('Proceso Finalizado!!')
