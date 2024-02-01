@@ -2,7 +2,8 @@
 import os
 import pandas as pd
 from openpyxl import Workbook
-
+import matplotlib.pyplot as plt
+import numpy as np
 ## Nombre del mes con texto, se ocupara para leer la carpeta del mes y asignar el nombre a los archivos generados
 mes_nombre = "Enero"
 
@@ -11,6 +12,8 @@ mes_nombre = "Enero"
 m = "01"
 y = "2024"
 
+##
+semana = "4"
 ## Nombre de las extenciones de los archivos que ocupara el script para realizar 
 a = "-Transacciones.csv"
 ae = "-Transacciones-extension.csv"
@@ -20,8 +23,8 @@ ruta_guardado = f"Transacciones/{y}/{m} {mes_nombre}"
 
 ## Este es el rango de dias en el que se trabajara, para el tema del ultimo dia siempre se le sumara 1
 ## Ejemplo primera quincena dia_fn = 16 el metodo range trabaja de esa forma
-dia_in = 1
-dia_fn = 16
+dia_in = 22
+dia_fn = 29
 rango = dia_fn - dia_in
 
 ## Listado de los archvios -Transacciones.csv
@@ -112,11 +115,43 @@ if rango < 13 :
   resultados = pd.DataFrame(resumen)
 
   ## Definir el nombre de los archivos que seran guardados en la carpeta al finalizar el analisis
-  archivo_sem = f"RRE_{mes_nombre}_{dia_in}-{dia_fn}.csv"
+  archivo_sem = f"RRE_{mes_nombre}_{dia_in}-{dia_fn-1}.csv"
   ruta_res_sem = os.path.join(ruta_guardado, archivo_sem)
   resultados.to_csv(ruta_res_sem, index=False)
   print("Proceso realizado con Exito!!")
+  if rango == 7 :
+    print(f"Trabajando con la semana {semana}")
+    plt.style.use('seaborn-v0_8-paper')
+    width = 0.8  # 
+    fig, ax = plt.subplots(figsize=(18,8))
+    bottom = np.zeros(rango)
+    colors = ['#2a680c','#a20b0b']  # Adjust based on your bars
+    fechas = resultados['FECHA']
+    tr_rrd = resultados['Montos Digitales'] + resultados['Montos AppCDMX']
+    tr_rrf = resultados['Montos Fisicos']
+    # Asignando nombres a las Series
+    tr_rrd.name = 'Montos Digitales'
+    tr_rrf.name = 'Montos Fisicos'
 
+    tr_counts = pd.DataFrame({ 
+      'Montos Digitales': np.array(tr_rrd),
+      'Montos Fisicos': np.array(tr_rrf)
+    })
+    
+    for i, (tr, tr_count) in enumerate(tr_counts.items()):
+        p = ax.bar(fechas, tr_count, width, label=tr, bottom=bottom, color=colors[i])
+        bottom += tr_count
+        ax.bar_label(p, label_type='center', color='#fff', fontsize=10, **{'fmt': '{:,.0f}'})
+
+    ax.set_title(f'Montos recaudados por tipo de red semana {semana}',fontsize=12,fontweight='bold')
+    ax.set_ylabel('Montos',fontsize=12,fontweight='bold')
+    ax.yaxis.set_major_formatter(lambda x, pos: f'{x:,.0f}')
+    ax.set_xlabel('Fechas',fontsize=12,fontweight='bold')
+    ax.legend()
+    # plt.show()
+    nombre_grafico = f'RR_Grafico_Semana_{semana}.png'
+    ruta_grafico = os.path.join(ruta_guardado, nombre_grafico)
+    plt.savefig(ruta_grafico,format='png',dpi=900,bbox_inches='tight')
 ## Inicia el condicional para las Quincenas        
 elif rango >= 13 and rango <= 16:
   print("Realizando analisis quincenal.")
@@ -159,16 +194,53 @@ elif rango >= 13 and rango <= 16:
     resultados.to_csv(ruta_res_mens, index=False)
     ## Archivo completo
     print("Generando datos en crudo")
-    archivo_full = f"{first}_qna_{mes_nombre}.csv"
+    archivo_full = f"Full_{first}_qna_{mes_nombre}.csv"
     ruta_full = os.path.join(ruta_guardado, archivo_full)
     df_transacciones.to_csv(ruta_full, index=False)
-  
+    ##   Ectenciones
+    print("Generando datos extenciones")
+    archivo_full = f"Full_ext_{first}_qna_{mes_nombre}.csv"
+    ruta_full = os.path.join(ruta_guardado, archivo_full)
+    df_transacciones.to_csv(ruta_full, index=False)
     ## Resumen de Tarjetas
     print("Generando resumen de las tarjetas")
     res_tarjetas = pd.DataFrame(tarjetas)
     archivo_tar = f"Tarjetas_{first}_qna_{mes_nombre}.csv"
     ruta_resultados = os.path.join(ruta_guardado, archivo_tar)
     res_tarjetas.to_csv(ruta_resultados, index=False)
+    ## Grafico
+    print("Creando Grafico")
+    plt.style.use('seaborn-v0_8-paper')
+    width = 0.6  # the width of the bars: can also be len(x) sequence
+    fig, ax = plt.subplots(figsize=(18,8))
+    bottom = np.zeros(rango)
+    colors = ['#2a680c','#a20b0b']  # Adjust based on your bars
+    fechas = resultados['FECHA']
+    tr_rrd = resultados['TR Digitales'] + resultados['TR AppCDMX']
+    tr_rrf = resultados['TR Fisicas']
+
+    # Asignando nombres a las Series
+    tr_rrd.name = 'TR Digitales'
+    tr_rrf.name = 'TR Fisicas'
+
+    tr_counts = pd.DataFrame({ 
+      'TR Digitales': np.array(tr_rrd),
+      'TR Fisica': np.array(tr_rrf)
+    })
+
+    for i, (tr, tr_count) in enumerate(tr_counts.items()):
+        p = ax.bar(fechas, tr_count, width, label=tr, bottom=bottom, color=colors[i])
+        bottom += tr_count
+        ax.bar_label(p, label_type='center', color='#fff',fontsize=10,)
+
+    ax.set_title(f'Transacciones por tipo de red por día del {dia_in} al {dia_fn -1} de enero',fontsize=12,fontweight='bold')
+    ax.set_ylabel('No. de transacciones',fontsize=12,fontweight='bold')
+    ax.set_xlabel('Fechas',fontsize=12,fontweight='bold')
+    ax.legend()
+    # plt.show()
+    nombre_grafico = f'RR_Grafico_{first}_qna.png'
+    ruta_grafico = os.path.join(ruta_guardado, nombre_grafico)
+    plt.savefig(ruta_grafico,format='png',dpi=900,bbox_inches='tight')
     print("Proceso realizado con Exito!!")
   ## Condicion para la segunda Quincena
   elif dia_in == 16:
@@ -184,26 +256,69 @@ elif rango >= 13 and rango <= 16:
     resultados.to_csv(ruta_res_mens, index=False)
     ## Archivo completo 
     print("Generando datos en crudo")
-    archivo_full = f"{second}_qna_{mes_nombre}.csv"
+    archivo_full = f"Full_{second}_qna_{mes_nombre}.csv"
     ruta_full = os.path.join(ruta_guardado, archivo_full)
     df_transacciones.to_csv(ruta_full, index=False)
-    
+    ## Extenciones    
+    print("Generando datos extenciones")
+    archivo_full = f"Full_ext_{second}_qna_{mes_nombre}.csv"
+    ruta_full = os.path.join(ruta_guardado, archivo_full)
+    df_transacciones.to_csv(ruta_full, index=False)
     ## Resumen de tarjetas
     print("Generando resumen de las tarjetas")
     res_tarjetas = pd.DataFrame(tarjetas)
     archivo_tar = f"Tarjetas_{second}_qna_{mes_nombre}.csv"
     ruta_resultados = os.path.join(ruta_guardado, archivo_tar)
     res_tarjetas.to_csv(ruta_resultados, index=False)
+        ## Grafico
+    print("Creando Grafico")
+    plt.style.use('seaborn-v0_8-paper')
+    width = 0.6  # the width of the bars: can also be len(x) sequence
+    fig, ax = plt.subplots(figsize=(18,8))
+    bottom = np.zeros(rango)
+    colors = ['#2a680c','#a20b0b']  # Adjust based on your bars
+    fechas = resultados['FECHA']
+    tr_rrd = resultados['TR Digitales'] + resultados['TR AppCDMX']
+    tr_rrf = resultados['TR Fisicas']
+
+    # Asignando nombres a las Series
+    tr_rrd.name = 'TR Digitales'
+    tr_rrf.name = 'TR Fisicas'
+
+    tr_counts = pd.DataFrame({ 
+      'TR Digitales': np.array(tr_rrd),
+      'TR Fisica': np.array(tr_rrf)
+    })
+
+    for i, (tr, tr_count) in enumerate(tr_counts.items()):
+        p = ax.bar(fechas, tr_count, width, label=tr, bottom=bottom, color=colors[i])
+        bottom += tr_count
+        ax.bar_label(p, label_type='center', color='#fff',fontsize=10,)
+
+    ax.set_title(f'Transacciones por tipo de red por día del {dia_in} al {dia_fn -1} de enero',fontsize=12,fontweight='bold')
+    ax.set_ylabel('No. de transacciones',fontsize=12,fontweight='bold')
+    ax.set_xlabel('Fechas',fontsize=12,fontweight='bold')
+    ax.legend()
+    # plt.show()
+    nombre_grafico = f'RR_Grafico_{second}_qna.png'
+    ruta_grafico = os.path.join(ruta_guardado, nombre_grafico)
+    plt.savefig(ruta_grafico,format='png',dpi=900,bbox_inches='tight')
     print("Proceso realizado con Exito!!")
 ## Inicia el Condicional para los meses    
 elif rango > 16:
   ## Se guarda la concatenacion de todo el mes para conciliacion con SEMOVI
   df_transacciones = pd.concat(transacciones, ignore_index=True)
-  archivo_full = f"{mes_nombre}.csv"
+  print("Generando datos en crudo")
+  archivo_full = f"Full_{mes_nombre}.csv"
   ruta_full = os.path.join(ruta_guardado, archivo_full)
   df_transacciones.to_csv(ruta_full, index=False)
-  ## llamamos a la funcion resumen_transacciones 
+  ## Extenciones    
+  print("Generando datos extenciones")
+  archivo_full = f"Full_ext_{mes_nombre}.csv"
+  ruta_full = os.path.join(ruta_guardado, archivo_full)
+  df_transacciones.to_csv(ruta_full, index=False)
   resumen_transacciones(transacciones)
+  ## llamamos a la funcion resumen_transacciones 
   ## Convertir el arreglo resumen en DataFrame
   resultados = pd.DataFrame(resumen)
   ## Definir el nombre de los archivos que seran guardados en la carpeta al finalizar el analisis
@@ -219,9 +334,9 @@ elif rango > 16:
   tr_total = resultados['TR Totales'].sum()
 
   ## Obtener datos porcentuales de transacciones fisicas, digitales y el total
-  pr_dig = tr_digitales / tr_total * 100 
-  pr_fis = tr_fisicas / tr_total * 100 
-  pr_app = tr_appcdmx / tr_total * 100 
+  pr_dig = tr_digitales / tr_total  
+  pr_fis = tr_fisicas / tr_total  
+  pr_app = tr_appcdmx / tr_total  
   pr_total = pr_dig + pr_fis + pr_app
 
   ## Tabla de valores porcentuales para la comision de mercado pago
@@ -294,9 +409,9 @@ elif rango > 16:
   com_digital = (pr_com_dig/100)*tt_digital
   com_appcdmx = (pr_com_app/100)*tt_appcdmx
   com_total = com_fisico + com_digital + com_appcdmx
-  prm_digital = tt_digital / mt_total *100
-  prm_fisico = tt_fisico / mt_total *100
-  prm_appcdmx = tt_appcdmx / mt_total *100
+  prm_digital = tt_digital / mt_total 
+  prm_fisico = tt_fisico / mt_total 
+  prm_appcdmx = tt_appcdmx / mt_total 
   prm_total = prm_digital + prm_fisico + prm_appcdmx
   
   #Resultados Transacciones 
@@ -335,7 +450,7 @@ elif rango > 16:
   ## Analisis para las penalizaciones de las transacciones mayores a 7 seg
   mayor_seven = df_extenciones['DURATION'] > 7
   
-  ## Se realiza el conteo total de todas las transacciones que son amyores a los 7 segundos
+  ## Se realiza el conteo total de todas las transacciones que son mayores a los 7 segundos
   ntr_may_seven = df_extenciones.loc[mayor_seven,['DURATION']].count()
   
   ## Convierte la serie a un tipo de datos numérico
@@ -348,9 +463,7 @@ elif rango > 16:
 
   lista_tr_7s = f"RRE - Penalizaciones {mes_nombre}.xlsx"
   ruta_lista = os.path.join(ruta_guardado,lista_tr_7s)
-
   with pd.ExcelWriter(ruta_lista) as writer:
-      #res_mayor_sev.to_excel(writer, index=False ,sheet_name=f'{mes_nombre}')
       df_merge_fil.to_excel(writer, index=False ,sheet_name=f'Transacciones penalizables {mes_nombre}')
 
   print("Proceso realizado con Exito!!")
