@@ -9,7 +9,7 @@ mes_nombre = "Enero"
 ## Modificar el contenido de m = "mes" * Para los meses que anteriores a octubre ocupar la sintaxis 09 = Septiembre 08 = Agosto
 ## Modificar el contenido de Y = "Año" 2023 / 2024 / 2025 
 m = "01"
-y = "2023"
+y = "2024"
 
 ## Nombre de las extenciones de los archivos que ocupara el script para realizar 
 a = "-Transacciones.csv"
@@ -28,27 +28,18 @@ mes_filtrado = f"{mes_nombre}_filtrado.csv"
 mes_completo = f"{mes_nombre}_completo.csv"
 
 ## Archivos quincenales agregar # al inicio cuando se desea trabajar por mes el script
-archivo_mp = f"Reporte_MP_{second}_qna_{mes_nombre}.xlsx"
-quincena = f"{second}_qna_{mes_nombre}"
-qnaExt = f"{second}_qna_{mes_nombre}-extencion.csv"
+#archivo_mp = f"Reporte_MP_{second}_qna_{mes_nombre}.xlsx"
+#quincena = f"{second}_qna_{mes_nombre}"
 
 ## Archivos mensuales eliminar # cuando se trabaje el script por mes
-#archivo_mp = f"Reporte_MP_{mes_nombre}.xlsx"## Desactivar cuando se requiera el Reporte_MP_mensual
-#quincena = f"{mes_nombre}" ## Desactivar cuando se requiera el Resumen_RRE_mensual
+archivo_mp = f"Reporte_MP_{mes_nombre}.xlsx"## Desactivar cuando se requiera el Reporte_MP_mensual
+quincena = f"{mes_nombre}" ## Desactivar cuando se requiera el Resumen_RRE_mensual
 
 ## Este es el rango de dias en el que se trabajara, para el tema del ultimo dia siempre se le sumara 1
 ## Ejemplo primera quincena dia_fn = 16 el metodo range trabaja de esa forma
 dia_in =  1
-dia_fn =  28
+dia_fn = 16
 
-rango = dia_fn - dia_in
-print(rango)
-if rango == 15:
-    print('Es quincena')
-elif rango > 15:
-    print('Es Mes')
-elif rango < 15:
-    print('Es individual o menor a la quincena')
 ## Listado de los archvios -Transacciones.csv
 ## Listado de los archivo a leer segun el rango especificado 
 archivo_tr = [os.path.join(ruta_guardado, f"{y}{m}{d:02d}{a}") for d in range(dia_in, dia_fn)]
@@ -76,21 +67,21 @@ for transaccion in archivo_tr:
 for extencion in archivo_ex:
     df = pd.read_csv(extencion)
     extenciones.append(df)   
-
-df_ext = pd.concat(extenciones, ignore_index=True)
-ruta_ext = os.path.join(ruta_guardado, qnaExt)
-df_ext.to_csv(ruta_ext)
-
+    
 ## Concatenación de documentos extraídos del arreglo transacciones y creando un solo DataFrame con información de toda la quincena
 df_completo = pd.concat(transacciones, ignore_index=True)
 
 ## Concatenación de documentos extraídos del arreglo extenciones y creando un solo DataFrame con información de todo el mes
 mes = pd.concat(extenciones, ignore_index=True)
 
-## Serie_Hex de tarjetas unicas utilizando un filtro para solo obtener transacciones validas
+archivo_full = f"1ra_qna_ene_ext.csv"
+ruta_full = os.path.join(ruta_guardado, archivo_full)
+mes.to_csv(ruta_full, index=False)
 
+## Serie_Hex de tarjetas unicas utilizando un filtro para solo obtener transacciones validas
 df_completo['TIPO_TRANSACCION'] = df_completo['TIPO_TRANSACCION'].astype('str')
 df_trfil = df_completo[df_completo['TIPO_TRANSACCION'] == '0' ].copy()
+df_trfil['TIPO_TRANSACCION'] = pd.to_numeric(df_trfil['TIPO_TRANSACCION'])
 
 tarjetas_unicas = pd.DataFrame({'NUMERO_SERIE_HEX': df_trfil['NUMERO_SERIE_HEX'].unique()})
 
@@ -105,8 +96,8 @@ for datos in ['DEVICE_ID','LATITUDE','LONGITUDE']:
 empty_field = df_completo.isnull().sum()
 mes_field = mes.isnull().sum()
 
-num_trx = df_trfil['TIPO_TRANSACCION'].size 
 
+num_trx = df_trfil['TIPO_TRANSACCION'].size 
 ## Crear DataFrame Tarjetas con todas las tarjetas unicas y poder compararla con las transacciones y asignarle el monto
 
 ## MONTOS
@@ -136,7 +127,7 @@ for df in transacciones:
     ## Filtrar las transacciones de tipo 0
     df['TIPO_TRANSACCION'] = df['TIPO_TRANSACCION'].astype('str')
     df_filtro = df[df['TIPO_TRANSACCION'] == '0'].copy()
-    
+    df_filtro['TIPO_TRANSACCION'] = pd.to_numeric(df_filtro['TIPO_TRANSACCION'])
     ## Sacaremos el total de transacciones con el metodo count 
     tr_totales = df_filtro['TIPO_TRANSACCION'].count()
     
@@ -342,8 +333,7 @@ for index, row in list_mayor_seven.iterrows():
 
 ## hoja 3 Donde se guardaran los datos que se requieren para llenar el documento de graficas semanales
     
-num_tarjetas = tarjetas_unicas.size
-print(num_tarjetas)                                                      
+num_tarjetas = tarjetas_unicas.size                                                      
 hoja3['A1'] = "informacion para Graficas Semanales"
 hoja3.append(['## Tarjetas','## Transacciones','$ Promedio'])
 hoja3.append([num_tarjetas,num_trx,mean_montos])
@@ -367,6 +357,5 @@ wb.save(ruta_mp)
 
 ruta_tr = os.path.join(ruta_guardado,f"Transacciones_{mes_nombre}.csv")
 resumen.sort_index().to_csv(ruta_tr)
-
 
 print("Proceso realizado con Exito!!")

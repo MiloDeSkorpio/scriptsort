@@ -12,10 +12,10 @@ y = "2024"
 ruta_trabajo = f"Validadores/{y}/{m} {mes}"
 
 ## Es el periodo en el que se realiza el analisis
-periodo = "15_al_21_enero"
+periodo = "22_al_28_enero"
 
 ## Archivo a subir 
-file_to_upload = 'Validaciones del 15 al 21 de enero 2024.csv'
+file_to_upload = 'Validaciones del 22 al 28 de enero 2024.csv'
 
 ## metodo para asignar la ruta al archivo
 archivo = os.path.join(ruta_trabajo, file_to_upload)
@@ -104,11 +104,6 @@ sum_row = {
 }
 
 resultados = pd.concat([resultados, pd.DataFrame([sum_row])], ignore_index=True)
-
-# Guarda el DataFrame a CSV 
-archivo_val = f"Resumen_Val_{periodo}.csv"
-ruta_resultados = os.path.join(ruta_trabajo, archivo_val)
-resultados.to_csv(ruta_resultados, index=False)
 
 df.LINEA.replace('1', 'MIIT', inplace=True)
 df.LINEA.replace('2', 'SAUSA', inplace=True)
@@ -342,12 +337,10 @@ df_cond = pd.DataFrame(df_conduent)
 bus_cond = len(df_cond)
 
 
-
 df_jm = []
 resumen_integrador(jm,df_jm)
 df_jotaeme = pd.DataFrame(df_jm)
 bus_jotaeme = len(df_jotaeme)
-
 
 
 df_bea = []
@@ -356,19 +349,16 @@ df_be = pd.DataFrame(df_bea)
 bus_be = len(df_be)
 
 
-
 df_mpeso = []
 resumen_integrador(mpeso,df_mpeso)
 df_mpe = pd.DataFrame(df_mpeso)
 bus_mpe = len(df_mpe)
 
 
-
 df_insitra = []
 resumen_integrador(insitra,df_insitra)
 df_insi = pd.DataFrame(df_insitra)
 bus_insi = len(df_insi)
-
 
 
 def totalTran_no_validas(df):
@@ -413,10 +403,10 @@ ttv = ttv_insi + ttv_mpe +ttv_be + ttv_jotaeme + ttv_cond + ttv_micro
 
 
 resumen = {
-    'Integrador': ['Microsafe','Conduent','Insitra','Mpeso','Bea','JM','Total'],
+    'Integrador': ['Microsafe','Conduent','Insitra','Mpeso','Bea','JM','Totales'],
     '# No Exitosas': [ttnv_micro,ttnv_cond,ttnv_insi,ttnv_mpe,ttnv_be,ttnv_jotaeme,ttnv],
     '% No Exitosas': [ttnv_micro/ttnv,ttnv_cond/ttnv,ttnv_insi/ttnv,ttnv_mpe/ttnv,ttnv_be/ttnv,ttnv_jotaeme/ttnv,''],
-    'No Exitosas x Unidad': [ttnv_micro/bus_micro,ttnv_cond/bus_cond,ttnv_insi/bus_insi,ttnv_mpe/bus_mpe,ttnv_be/bus_be,ttnv_jotaeme/bus_jotaeme,''],
+    'No Exitosas x Unidad': [ttnv_micro/bus_micro,ttnv_cond/bus_cond,ttnv_insi/bus_insi,ttnv_mpe/bus_mpe,ttnv_be/bus_be,ttnv_jotaeme/bus_jotaeme,'Maxima: '],
     '# Exitosas': [ttv_micro,ttv_cond,ttv_insi,ttv_mpe,ttv_be,ttv_jotaeme,ttv],
     '% Exitosas': [ttv_micro/ttv,ttv_cond/ttv,ttv_insi/ttv,ttv_mpe/ttv,ttv_be/ttv,ttv_jotaeme/ttv,''],
 }
