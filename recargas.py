@@ -105,53 +105,65 @@ def resumen_transacciones(transacciones):
         'Monto Total': (monto_digital + monto_fisico + monto_appcdmx)/100,
     })
   return resumen
+## Definir funcion para crear graficos:
 
-## Inicia el condicional para los dias sueltos
-if rango < 13 :
-  ## Bucle para el analisis de todas las transacciones
-  resumen_transacciones(transacciones)
-
-  ## Convertir el arreglo resumen en DataFrame
-  resultados = pd.DataFrame(resumen)
-
-  ## Definir el nombre de los archivos que seran guardados en la carpeta al finalizar el analisis
-  archivo_sem = f"RRE_{mes_nombre}_{dia_in}-{dia_fn-1}.csv"
-  ruta_res_sem = os.path.join(ruta_guardado, archivo_sem)
-  resultados.to_csv(ruta_res_sem, index=False)
-  print("Proceso realizado con Exito!!")
-  if rango == 7 :
-    print(f"Trabajando con la semana {semana}")
+def crear_grafico(rango,resultados,title,nombre_grafico,width):
+    ## Grafico
+    print("Creando Grafico")
+    ## Definir el estilo del grafico
     plt.style.use('seaborn-v0_8-paper')
-    width = 0.8  # 
-    fig, ax = plt.subplots(figsize=(18,8))
+    ## Definir el ancho de cada una de las barras
+    width = width  
+    ## Definimos el objeto grafico (ancho,alto)
+    fig,ax = plt.subplots(figsize=(18,8))
+    ## Valores base para las barras apiladas
     bottom = np.zeros(rango)
-    colors = ['#2a680c','#a20b0b']  # Adjust based on your bars
+    ## Colores para las barras
+    colors = ['#2a680c','#a20b0b'] 
+    ## Datos
     fechas = resultados['FECHA']
     tr_rrd = resultados['Montos Digitales'] + resultados['Montos AppCDMX']
     tr_rrf = resultados['Montos Fisicos']
     # Asignando nombres a las Series
     tr_rrd.name = 'Montos Digitales'
     tr_rrf.name = 'Montos Fisicos'
-
+    ## array de datos
     tr_counts = pd.DataFrame({ 
       'Montos Digitales': np.array(tr_rrd),
       'Montos Fisicos': np.array(tr_rrf)
     })
-    
+
     for i, (tr, tr_count) in enumerate(tr_counts.items()):
         p = ax.bar(fechas, tr_count, width, label=tr, bottom=bottom, color=colors[i])
         bottom += tr_count
-        ax.bar_label(p, label_type='center', color='#fff', fontsize=10, **{'fmt': '{:,.0f}'})
+        ax.bar_label(p, label_type='center', color='#fff',fontsize=10,**{'fmt': '{:,.0f}'})
 
-    ax.set_title(f'Montos recaudados por tipo de red semana {semana}',fontsize=12,fontweight='bold')
-    ax.set_ylabel('Montos',fontsize=12,fontweight='bold')
+    ax.set_title(title,fontsize=12,fontweight='bold')
     ax.yaxis.set_major_formatter(lambda x, pos: f'{x:,.0f}')
+    ax.set_ylabel('Montos',fontsize=12,fontweight='bold')
     ax.set_xlabel('Fechas',fontsize=12,fontweight='bold')
     ax.legend()
-    # plt.show()
-    nombre_grafico = f'RR_Grafico_Semana_{semana}.png'
     ruta_grafico = os.path.join(ruta_guardado, nombre_grafico)
     plt.savefig(ruta_grafico,format='png',dpi=900,bbox_inches='tight')
+    print("Proceso realizado con Exito!!")
+## Inicia el condicional para los dias sueltos
+if rango < 13 :
+  ## Bucle para el analisis de todas las transacciones
+  resumen_transacciones(transacciones)
+  ## Convertir el arreglo resumen en DataFrame
+  resultados = pd.DataFrame(resumen)
+  ## Definir el nombre de los archivos que seran guardados en la carpeta al finalizar el analisis
+  archivo_sem = f"RRE_{mes_nombre}_{dia_in}-{dia_fn-1}.csv"
+  ruta_res_sem = os.path.join(ruta_guardado, archivo_sem)
+  resultados.to_csv(ruta_res_sem, index=False)
+  print("Proceso realizado con Exito!!")
+  if rango == 7 :
+    nombre_grafico = f'RR_Grafico_Semana_{semana}.png'
+    title = f'Montos recaudados por tipo de red semana {semana}'
+    width = 0.6
+    print(f"Trabajando con la semana {semana}")
+    crear_grafico(rango,resultados,title,nombre_grafico,width)
+    
 ## Inicia el condicional para las Quincenas        
 elif rango >= 13 and rango <= 16:
   print("Realizando analisis quincenal.")
@@ -208,40 +220,12 @@ elif rango >= 13 and rango <= 16:
     archivo_tar = f"Tarjetas_{first}_qna_{mes_nombre}.csv"
     ruta_resultados = os.path.join(ruta_guardado, archivo_tar)
     res_tarjetas.to_csv(ruta_resultados, index=False)
+    
     ## Grafico
-    print("Creando Grafico")
-    plt.style.use('seaborn-v0_8-paper')
-    width = 0.6  # the width of the bars: can also be len(x) sequence
-    fig, ax = plt.subplots(figsize=(18,8))
-    bottom = np.zeros(rango)
-    colors = ['#2a680c','#a20b0b']  # Adjust based on your bars
-    fechas = resultados['FECHA']
-    tr_rrd = resultados['TR Digitales'] + resultados['TR AppCDMX']
-    tr_rrf = resultados['TR Fisicas']
-
-    # Asignando nombres a las Series
-    tr_rrd.name = 'TR Digitales'
-    tr_rrf.name = 'TR Fisicas'
-
-    tr_counts = pd.DataFrame({ 
-      'TR Digitales': np.array(tr_rrd),
-      'TR Fisica': np.array(tr_rrf)
-    })
-
-    for i, (tr, tr_count) in enumerate(tr_counts.items()):
-        p = ax.bar(fechas, tr_count, width, label=tr, bottom=bottom, color=colors[i])
-        bottom += tr_count
-        ax.bar_label(p, label_type='center', color='#fff',fontsize=10,)
-
-    ax.set_title(f'Transacciones por tipo de red por día del {dia_in} al {dia_fn -1} de enero',fontsize=12,fontweight='bold')
-    ax.set_ylabel('No. de transacciones',fontsize=12,fontweight='bold')
-    ax.set_xlabel('Fechas',fontsize=12,fontweight='bold')
-    ax.legend()
-    # plt.show()
+    title = f'Transacciones por tipo de red por día del {dia_in} al {dia_fn -1} de enero'
     nombre_grafico = f'RR_Grafico_{first}_qna.png'
-    ruta_grafico = os.path.join(ruta_guardado, nombre_grafico)
-    plt.savefig(ruta_grafico,format='png',dpi=900,bbox_inches='tight')
-    print("Proceso realizado con Exito!!")
+    width = 0.8
+    crear_grafico(rango,resultados,title,nombre_grafico,width)
   ## Condicion para la segunda Quincena
   elif dia_in == 16:
     print(f"Analizando la {second} qna de {mes_nombre}")
@@ -270,40 +254,11 @@ elif rango >= 13 and rango <= 16:
     archivo_tar = f"Tarjetas_{second}_qna_{mes_nombre}.csv"
     ruta_resultados = os.path.join(ruta_guardado, archivo_tar)
     res_tarjetas.to_csv(ruta_resultados, index=False)
-        ## Grafico
-    print("Creando Grafico")
-    plt.style.use('seaborn-v0_8-paper')
-    width = 0.6  # the width of the bars: can also be len(x) sequence
-    fig, ax = plt.subplots(figsize=(18,8))
-    bottom = np.zeros(rango)
-    colors = ['#2a680c','#a20b0b']  # Adjust based on your bars
-    fechas = resultados['FECHA']
-    tr_rrd = resultados['TR Digitales'] + resultados['TR AppCDMX']
-    tr_rrf = resultados['TR Fisicas']
-
-    # Asignando nombres a las Series
-    tr_rrd.name = 'TR Digitales'
-    tr_rrf.name = 'TR Fisicas'
-
-    tr_counts = pd.DataFrame({ 
-      'TR Digitales': np.array(tr_rrd),
-      'TR Fisica': np.array(tr_rrf)
-    })
-
-    for i, (tr, tr_count) in enumerate(tr_counts.items()):
-        p = ax.bar(fechas, tr_count, width, label=tr, bottom=bottom, color=colors[i])
-        bottom += tr_count
-        ax.bar_label(p, label_type='center', color='#fff',fontsize=10,)
-
-    ax.set_title(f'Transacciones por tipo de red por día del {dia_in} al {dia_fn -1} de enero',fontsize=12,fontweight='bold')
-    ax.set_ylabel('No. de transacciones',fontsize=12,fontweight='bold')
-    ax.set_xlabel('Fechas',fontsize=12,fontweight='bold')
-    ax.legend()
-    # plt.show()
+    ## Grafico
     nombre_grafico = f'RR_Grafico_{second}_qna.png'
-    ruta_grafico = os.path.join(ruta_guardado, nombre_grafico)
-    plt.savefig(ruta_grafico,format='png',dpi=900,bbox_inches='tight')
-    print("Proceso realizado con Exito!!")
+    title = f'Transacciones por tipo de red por día del {dia_in} al {dia_fn -1} de enero'
+    width = 0.8
+    crear_grafico(rango,resultados,title,nombre_grafico, width)
 ## Inicia el Condicional para los meses    
 elif rango > 16:
   ## Se guarda la concatenacion de todo el mes para conciliacion con SEMOVI
