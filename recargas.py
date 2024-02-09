@@ -119,30 +119,54 @@ def crear_grafico(rango,resultados,title,nombre_grafico,width):
     ## Valores base para las barras apiladas
     bottom = np.zeros(rango)
     ## Colores para las barras
-    colors = ['#2a680c','#a20b0b'] 
-    ## Datos
+    colors = ['#385723','#a50021'] 
+    # Define variables
     fechas = resultados['FECHA']
-    tr_rrd = resultados['Montos Digitales'] + resultados['Montos AppCDMX']
-    tr_rrf = resultados['Montos Fisicos']
-    # Asignando nombres a las Series
-    tr_rrd.name = 'Montos Digitales'
-    tr_rrf.name = 'Montos Fisicos'
-    ## array de datos
-    tr_counts = pd.DataFrame({ 
-      'Montos Digitales': np.array(tr_rrd),
-      'Montos Fisicos': np.array(tr_rrf)
+    tr_rrd = resultados['TR Digitales'] + resultados['TR AppCDMX']
+    tr_rrf = resultados['TR Fisicas']
+    mto_tt = resultados['Monto Total']
+    # Asigna nombres a las Series
+    tr_rrd.name = 'TR Digitales'
+    tr_rrf.name = 'TR Fisicas'
+    mto_tt.name = 'Monto Total'
+    # Crea un DataFrame
+    tr_counts = pd.DataFrame({
+        'TR Digitales': np.array(tr_rrd),
+        'TR Fisicas': np.array(tr_rrf),
     })
-
+    # Crea el gráfico
+    fig, ax = plt.subplots(figsize=(12,8))
+    ## Creamos la iteracion de los datos
     for i, (tr, tr_count) in enumerate(tr_counts.items()):
+        ## Creamos un grafico de barras
         p = ax.bar(fechas, tr_count, width, label=tr, bottom=bottom, color=colors[i])
+        ## Generamos el apilamiento de barras
         bottom += tr_count
-        ax.bar_label(p, label_type='center', color='#fff',fontsize=10,**{'fmt': '{:,.0f}'})
+        ## Asignamos las etiwuetas a las barras
+        ax.bar_label(p, label_type='center', color='#fff',fontsize=10,fontweight=600,**{'fmt': '{:,.0f}'})
+    ## Creamos un segundo eje
+    ax2 = ax.twinx()
+    ## Graficamos una linea con el nuevo eje
+    ax2.plot(fechas, mto_tt, label="Montos", color="#fe9c55", marker='o',linestyle="solid")
+    ## Añadimos las etiquetas a la linea
+    for i, (fecha, monto) in enumerate(zip(fechas, mto_tt)):
+        if monto >= min(mto_tt) :  
+            ax2.annotate(f"${monto:,.0f}", (fecha, monto), xytext=(2,5), textcoords='offset points', fontsize=10,fontweight=600)
 
-    ax.set_title(title,fontsize=12,fontweight='bold')
+    ## Posicionamiento de la etiqueta del eje secundario
+    ax2.yaxis.set_label_position("right")
+    ## Se asignan las etiqetas para los ejes
+    ax2.set_ylabel("Valor Monetario",fontsize=8,fontweight=600)
+    ax.set_ylabel("N° de Transacciones",fontsize=8,fontweight=600)
+    ax.set_xlabel(f'Semana {semana}',fontsize=8,fontweight=600)
+    ## Creamos una legenda fuera del grafico
+    fig.legend(loc='outside upper left')
+    # Ajusta el formato de los valores en el eje Y
     ax.yaxis.set_major_formatter(lambda x, pos: f'{x:,.0f}')
-    ax.set_ylabel('Montos',fontsize=12,fontweight='bold')
-    ax.set_xlabel('Fechas',fontsize=12,fontweight='bold')
-    ax.legend()
+    ax2.yaxis.set_major_formatter(lambda x, pos: f'{x:,.0f}')
+    # Ajusta el título del gráfico
+    ax.set_title(title,fontsize=12,fontweight=600)
+    # Guarda el gráfico en alta resolución
     ruta_grafico = os.path.join(ruta_guardado, nombre_grafico)
     plt.savefig(ruta_grafico,format='png',dpi=900,bbox_inches='tight')
     print("Proceso realizado con Exito!!")
@@ -422,3 +446,4 @@ elif rango > 16:
       df_merge_fil.to_excel(writer, index=False ,sheet_name=f'Transacciones penalizables {mes_nombre}')
 
   print("Proceso realizado con Exito!!")
+  
