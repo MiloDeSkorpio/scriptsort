@@ -2,9 +2,9 @@ import os
 import pandas as pd
 
 ## Definimos el mes con nombre
-mes = "Enero"
+mes = "Febrero"
 ## Definimos el mes con número
-m = "01"
+m = "02"
 ## Definimos el año
 y = "2024"
 
@@ -12,17 +12,17 @@ y = "2024"
 ruta_trabajo = f"Validadores/{y}/{m} {mes}"
 
 ## Es el periodo en el que se realiza el analisis
-periodo = "22_al_28_enero"
+periodo = "05 AL 11 DE FEBRERO"
 
 ## Archivo a subir 
-file_to_upload = 'Validaciones del 22 al 28 de enero 2024.csv'
+file_to_upload = 'VALIDACIONES DEL 05 AL 11 DE FEBRERO 2024.csv'
 
 ## metodo para asignar la ruta al archivo
 archivo = os.path.join(ruta_trabajo, file_to_upload)
 df = pd.read_csv(archivo, low_memory=False, encoding='latin-1')
 
 ## Convetir la fecha a aun formato donde se puedan leer de forma unica
-df['FECHA_HORA_TRANSACCION'] = pd.to_datetime(df['FECHA_HORA_TRANSACCION'])
+df['FECHA_HORA_TRANSACCION'] = pd.to_datetime(df['FECHA_HORA_TRANSACCION'], format="%d/%m/%Y %H:%M")
 df['FECHA_HORA_TRANSACCION'] = df['FECHA_HORA_TRANSACCION'].dt.strftime('%Y-%m-%d')
 
 ## Obtener fechas unicas
@@ -75,6 +75,7 @@ for fecha in fechas_unicas:
         'Sin saldo suficiente': df_sss.shape[0],
         'Transaccion abortada por saldo mayor': df_asm.shape[0],
         'Transaccion abortada por aplicacion de transporte invalido': df_ati.shape[0],
+        'Transaccion abortada por contrato invalido (firma erronea)': df_tai.shape[0],
         'Transaccion abortada (cualquier otro caso)': df_tax.shape[0],
         'Transaccion abortada por vigencia expirada': df_tve.shape[0],
         'FF': df_ff.shape[0],
@@ -98,6 +99,7 @@ sum_row = {
     'Sin saldo suficiente': resultados['Sin saldo suficiente'].sum(),
     'Transaccion abortada por saldo mayor': resultados['Transaccion abortada por saldo mayor'].sum(),
     'Transaccion abortada por aplicacion de transporte invalido': resultados['Transaccion abortada por aplicacion de transporte invalido'].sum(),
+    'Transaccion abortada por contrato invalido (firma erronea)': resultados['Transaccion abortada por contrato invalido (firma erronea)'].sum(),
     'Transaccion abortada (cualquier otro caso)': resultados['Transaccion abortada (cualquier otro caso)'].sum(),
     'Transaccion abortada por vigencia expirada': resultados['Transaccion abortada por vigencia expirada'].sum(),
     'FF': resultados['FF'].sum(),
@@ -117,6 +119,7 @@ df.LINEA.replace('11', 'CODIVERSA', inplace=True)
 df.LINEA.replace('12', 'COPESA', inplace=True)
 df.LINEA.replace('13', 'TVO', inplace=True)
 df.LINEA.replace('15', 'ABC', inplace=True)
+df.LINEA.replace('16', 'MOVIN', inplace=True)
 df.LINEA.replace('D', 'AMOPSA', inplace=True)
 df.LINEA.replace('E', 'CETRAM ZAPATA', inplace=True)
 df.LINEA.replace('34', 'CETRAM BUENAVISTA', inplace=True)
@@ -135,6 +138,7 @@ lineas = [
           'COPESA', 
           'TVO', 
           'ABC',
+          'MOVIN',
           'AMOPSA',
           'CETRAM ZAPATA', 
           'CETRAM BUENAVISTA', 
