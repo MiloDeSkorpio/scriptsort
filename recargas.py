@@ -13,7 +13,7 @@ m = "02"
 y = "2024"
 
 ##
-semana = "6"
+semana = "7"
 ## Nombre de las extenciones de los archivos que ocupara el script para realizar 
 a = "-Transacciones.csv"
 ae = "-Transacciones-extension.csv"
@@ -23,8 +23,8 @@ ruta_guardado = f"Transacciones/{y}/{m} {mes_nombre}"
 
 ## Este es el rango de dias en el que se trabajara, para el tema del ultimo dia siempre se le sumara 1
 ## Ejemplo primera quincena dia_fn = 16 el metodo range trabaja de esa forma
-dia_in = 13
-dia_fn = 14
+dia_in = 12
+dia_fn = 19
 rango = dia_fn - dia_in
 
 ## Listado de los archvios -Transacciones.csv
@@ -180,10 +180,20 @@ if rango < 13 :
   resultados.to_csv(ruta_res_sem, index=False)
   print("Proceso realizado con Exito!!")
   if rango == 7 :
+    print(f"Trabajando con la semana {semana}")
+    df_transacciones = pd.concat(transacciones, ignore_index=True)
+    print("Generando datos en crudo")
+    archivo_full = f"Full__semana_{semana}_{mes_nombre}.csv"
+    ruta_full = os.path.join(ruta_guardado, archivo_full)
+    df_transacciones.to_csv(ruta_full, index=False)
+    ##   Ectenciones
+    print("Generando datos extenciones")
+    archivo_full = f"Full_ext_semana_{semana}_{mes_nombre}.csv"
+    ruta_full = os.path.join(ruta_guardado, archivo_full)
+    df_extenciones.to_csv(ruta_full, index=False)
     nombre_grafico = f'RR_Grafico_Semana_{semana}.png'
     title = f'Montos recaudados por tipo de red semana {semana}'
     width = 0.6
-    print(f"Trabajando con la semana {semana}")
     crear_grafico(rango,resultados,title,nombre_grafico,width)
     
 ## Inicia el condicional para las Quincenas        
@@ -235,7 +245,7 @@ elif rango >= 13 and rango <= 16:
     print("Generando datos extenciones")
     archivo_full = f"Full_ext_{first}_qna_{mes_nombre}.csv"
     ruta_full = os.path.join(ruta_guardado, archivo_full)
-    df_transacciones.to_csv(ruta_full, index=False)
+    df_extenciones.to_csv(ruta_full, index=False)
     ## Resumen de Tarjetas
     print("Generando resumen de las tarjetas")
     res_tarjetas = pd.DataFrame(tarjetas)
@@ -293,7 +303,7 @@ elif rango > 16:
   print("Generando datos extenciones")
   archivo_full = f"Full_ext_{mes_nombre}.csv"
   ruta_full = os.path.join(ruta_guardado, archivo_full)
-  df_transacciones.to_csv(ruta_full, index=False)
+  df_extenciones.to_csv(ruta_full, index=False)
   resumen_transacciones(transacciones)
   ## llamamos a la funcion resumen_transacciones 
   ## Convertir el arreglo resumen en DataFrame
