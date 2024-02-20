@@ -23,8 +23,8 @@ ruta_guardado = f"Transacciones/{y}/{m} {mes_nombre}"
 
 ## Este es el rango de dias en el que se trabajara, para el tema del ultimo dia siempre se le sumara 1
 ## Ejemplo primera quincena dia_fn = 16 el metodo range trabaja de esa forma
-dia_in = 12
-dia_fn = 19
+dia_in = 1
+dia_fn = 16
 rango = dia_fn - dia_in
 
 ## Listado de los archvios -Transacciones.csv
@@ -107,7 +107,7 @@ def resumen_transacciones(transacciones):
   return resumen
 ## Definir funcion para crear graficos:
 
-def crear_grafico(rango,resultados,title,nombre_grafico,width):
+def crear_grafico(rango,resultados,title,nombre_grafico,width,ptime):
     ## Grafico
     print("Creando Grafico")
     ## Definir el estilo del grafico
@@ -156,7 +156,7 @@ def crear_grafico(rango,resultados,title,nombre_grafico,width):
     ## Se asignan las etiqetas para los ejes
     ax2.set_ylabel("Valor Monetario",fontsize=8,fontweight=600)
     ax.set_ylabel("N° de Transacciones",fontsize=8,fontweight=600)
-    ax.set_xlabel(f'Semana {semana}',fontsize=8,fontweight=600)
+    ax.set_xlabel(f'{ptime}',fontsize=8,fontweight=600)
     ## Creamos una legenda fuera del grafico
     fig.legend(loc='outside upper left')
     # Ajusta el formato de los valores en el eje Y
@@ -194,7 +194,8 @@ if rango < 13 :
     nombre_grafico = f'RR_Grafico_Semana_{semana}.png'
     title = f'Montos recaudados por tipo de red semana {semana}'
     width = 0.6
-    crear_grafico(rango,resultados,title,nombre_grafico,width)
+    ptime = f"Semana {semana}"
+    crear_grafico(rango,resultados,title,nombre_grafico,width,ptime)
     
 ## Inicia el condicional para las Quincenas        
 elif rango >= 13 and rango <= 16:
@@ -254,10 +255,11 @@ elif rango >= 13 and rango <= 16:
     res_tarjetas.to_csv(ruta_resultados, index=False)
     
     ## Grafico
-    title = f'Transacciones por tipo de red por día del {dia_in} al {dia_fn -1} de enero'
+    title = f'Transacciones por tipo de red por día del {dia_in} al {dia_fn -1} de {mes_nombre}'
     nombre_grafico = f'RR_Grafico_{first}_qna.png'
     width = 0.8
-    crear_grafico(rango,resultados,title,nombre_grafico,width)
+    ptime = f'{first} quincena {mes_nombre}'
+    crear_grafico(rango,resultados,title,nombre_grafico,width, ptime)
   ## Condicion para la segunda Quincena
   elif dia_in == 16:
     print(f"Analizando la {second} qna de {mes_nombre}")
@@ -279,7 +281,7 @@ elif rango >= 13 and rango <= 16:
     print("Generando datos extenciones")
     archivo_full = f"Full_ext_{second}_qna_{mes_nombre}.csv"
     ruta_full = os.path.join(ruta_guardado, archivo_full)
-    df_transacciones.to_csv(ruta_full, index=False)
+    df_extenciones.to_csv(ruta_full, index=False)
     ## Resumen de tarjetas
     print("Generando resumen de las tarjetas")
     res_tarjetas = pd.DataFrame(tarjetas)
@@ -290,7 +292,8 @@ elif rango >= 13 and rango <= 16:
     nombre_grafico = f'RR_Grafico_{second}_qna.png'
     title = f'Transacciones por tipo de red por día del {dia_in} al {dia_fn -1} de enero'
     width = 0.8
-    crear_grafico(rango,resultados,title,nombre_grafico, width)
+    ptime = f'{second} quincena {mes_nombre}'
+    crear_grafico(rango,resultados,title,nombre_grafico, width,ptime)
 ## Inicia el Condicional para los meses    
 elif rango > 16:
   ## Se guarda la concatenacion de todo el mes para conciliacion con SEMOVI
