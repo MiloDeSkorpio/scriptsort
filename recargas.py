@@ -5,15 +5,15 @@ from openpyxl import Workbook
 import matplotlib.pyplot as plt
 import numpy as np
 ## Nombre del mes con texto, se ocupara para leer la carpeta del mes y asignar el nombre a los archivos generados
-mes_nombre = "Febrero"
+mes_nombre = "Marzo"
 
 ## Modificar el contenido de m = "mes" * Para los meses que anteriores a octubre ocupar la sintaxis 09 = Septiembre 08 = Agosto
 ## Modificar el contenido de Y = "Año" 2023 / 2024 / 2025 
-m = "02"
+m = "03"
 y = "2024"
 
 ##
-semana = "7"
+semana = "9"
 ## Nombre de las extenciones de los archivos que ocupara el script para realizar 
 a = "-Transacciones.csv"
 ae = "-Transacciones-extension.csv"
@@ -24,7 +24,7 @@ ruta_guardado = f"Transacciones/{y}/{m} {mes_nombre}"
 ## Este es el rango de dias en el que se trabajara, para el tema del ultimo dia siempre se le sumara 1
 ## Ejemplo primera quincena dia_fn = 16 el metodo range trabaja de esa forma
 dia_in = 1
-dia_fn = 16
+dia_fn = 4
 rango = dia_fn - dia_in
 
 ## Listado de los archvios -Transacciones.csv
@@ -168,6 +168,110 @@ def crear_grafico(rango,resultados,title,nombre_grafico,width,ptime):
     ruta_grafico = os.path.join(ruta_guardado, nombre_grafico)
     plt.savefig(ruta_grafico,format='png',dpi=900,bbox_inches='tight')
     print("Proceso realizado con Exito!!")
+    
+def grafico_appcdmx(df,title,name):
+  print('Creando grafico AppCDMX')
+  # Define los datos
+  df['TIPO_TRANSACCION'] = df['TIPO_TRANSACCION'].astype('str')
+  df_filtro = df[df['TIPO_TRANSACCION'] == '0'].copy()
+  ## Sacaremos el total de transacciones con el metodo count
+  ## Convertir la columna FECHA_HORA_TRANSACCION a datetime
+  df_filtro['FECHA_HORA_TRANSACCION'] = pd.to_datetime(df_filtro['FECHA_HORA_TRANSACCION'])
+  df_filtro['FECHA_HORA_TRANSACCION'] = df_filtro['FECHA_HORA_TRANSACCION'].dt.strftime('%Y-%m-%d')
+  ## Fechas 
+  fechas_unicas = df_filtro['FECHA_HORA_TRANSACCION'].unique()
+  ## Obtener los valores únicos de la fecha de transacción
+  
+  dias = fechas_unicas
+  dias_tr = []
+  for fecha in fechas_unicas:
+    df_filter = df_filtro.loc[df_filtro['FECHA_HORA_TRANSACCION'] == fecha]
+    df_appcdmx = df_filter[df_filter['LOCATION_ID'] == '101801']
+    tr_totales = df_appcdmx['TIPO_TRANSACCION'].count()
+    dias_tr.append(tr_totales)
+  ###
+  plt.figure(figsize=(18, 8))
+  dias_tr = list(dias_tr)
+  for i, tr in enumerate(dias_tr):
+      plt.annotate(f'{tr:,d}', (dias[i], tr), xytext=(-4,6), textcoords='offset points', fontsize=10, fontweight=600)
+  plt.subplots_adjust(left=0.04, right=0.97, bottom=0.12, top=0.94)
+  y1 = dias_tr
+  plt.plot(dias,y1,label="AppCDMX",marker='o',color='#861313')
+  plt.xticks(fontsize=8, rotation=45)
+  # # Personaliza la gráfica
+  plt.title(title)
+  plt.xlabel("Dias", fontsize=10)
+  plt.ylabel("Transacciones")
+  plt.legend()
+  # # Muestra la gráfica
+  ruta_grafico = os.path.join(ruta_guardado, name)
+  plt.savefig(ruta_grafico,format='png',dpi=900,bbox_inches='tight')
+  print("Proceso realizado con Exito!!")
+  
+def grafico_lineal_RRE(df,title,name):
+  print('Creando Grafica Lineal comportamiento RRE')
+  # Define los datos
+  df['TIPO_TRANSACCION'] = df['TIPO_TRANSACCION'].astype('str')
+  df_filtro = df[df['TIPO_TRANSACCION'] == '0'].copy()
+  ##
+  df_filtro['FECHA_HORA_TRANSACCION'] = pd.to_datetime(df_filtro['FECHA_HORA_TRANSACCION'])
+  df_filtro['FECHA_HORA_TRANSACCION'] = df_filtro['FECHA_HORA_TRANSACCION'].dt.strftime('%Y-%m-%d')
+  ## Fechas 
+  fechas_unicas = df_filtro['FECHA_HORA_TRANSACCION'].unique()
+  ## Obtener los valores únicos de la fecha de transacción
+  dias = fechas_unicas
+  tr_app = []
+  tr_dig = []
+  tr_fis = []
+  for fecha in fechas_unicas:
+    df_filter = df_filtro.loc[df_filtro['FECHA_HORA_TRANSACCION'] == fecha]
+    # appcdmx
+    df_appcdmx = df_filter[df_filter['LOCATION_ID'] == '101801']    
+    tr_app_t = df_appcdmx['TIPO_TRANSACCION'].count()
+    tr_app.append(tr_app_t)
+    # digital
+    df_digital = df_filter[df_filter['LOCATION_ID'] == '101800']    
+    tr_dig_t = df_digital['TIPO_TRANSACCION'].count()
+    tr_dig.append(tr_dig_t)
+    # appcdmx
+    df_fisicas = df_filter[df_filter['LOCATION_ID'] == '201A00']    
+    tr_fis_t = df_fisicas['TIPO_TRANSACCION'].count()
+    tr_fis.append(tr_fis_t)
+
+  plt.figure(figsize=(18, 8))
+  # Agrega el valor arriba del marcador para cada día
+  tr_dig = list(tr_dig)
+  for i, tr in enumerate(tr_dig):
+      plt.annotate(f'{tr:,d}', (dias[i], tr), xytext=(-4,6), textcoords='offset points', fontsize=10, fontweight=600)
+  plt.subplots_adjust(left=0.04, right=0.97, bottom=0.12, top=0.94)
+  ##
+  tr_fis = list(tr_fis)
+  for i, tr in enumerate(tr_fis):
+      plt.annotate(f'{tr:,d}', (dias[i], tr), xytext=(-4,6), textcoords='offset points', fontsize=10, fontweight=600)
+  plt.subplots_adjust(left=0.04, right=0.97, bottom=0.12, top=0.94)
+  ##
+  tr_app = list(tr_app)
+  for i, tr in enumerate(tr_app):
+      plt.annotate(f'{tr:,d}', (dias[i], tr), xytext=(-4,6), textcoords='offset points', fontsize=10, fontweight=600)
+  plt.subplots_adjust(left=0.04, right=0.97, bottom=0.12, top=0.94)
+  ## 
+  y1 = tr_dig
+  y2 = tr_app
+  y3 = tr_fis
+  plt.plot(dias,y1,label="Digitales",marker='o',color='#269DD1')
+  plt.plot(dias,y3,label="Fisicas",marker='o',color='#7A25A4')
+  plt.plot(dias,y2,label="AppCDMX",marker='o',color='#861313')
+  plt.xticks(fontsize=8, rotation=45)
+  ## Personaliza la gráfica
+  plt.title(title)
+  plt.xlabel("Dias", fontsize=10)
+  plt.ylabel("Transacciones")
+  plt.legend()
+  # # Muestra la gráfica
+  ruta_grafico = os.path.join(ruta_guardado, name)
+  plt.savefig(ruta_grafico,format='png',dpi=900,bbox_inches='tight')
+  print("Proceso realizado con Exito!!")
+
 ## Inicia el condicional para los dias sueltos
 if rango < 13 :
   ## Bucle para el analisis de todas las transacciones
@@ -196,7 +300,14 @@ if rango < 13 :
     width = 0.6
     ptime = f"Semana {semana}"
     crear_grafico(rango,resultados,title,nombre_grafico,width,ptime)
-    
+    ##
+    nameGrApp = f'AppCDMX_Grafico_Semana_{semana}.png'
+    titleApp = f'Comportamiento AppCDMX semana {semana}'
+    grafico_appcdmx(df_transacciones,titleApp,nameGrApp)
+    ##
+    nameGrRRE = f'RRE_GraficoLin_Semana_{semana}.png'
+    titleRRE = f'Comportamiento RRE semana {semana}'
+    grafico_lineal_RRE(df_transacciones,titleRRE,nameGrRRE)
 ## Inicia el condicional para las Quincenas        
 elif rango >= 13 and rango <= 16:
   print("Realizando analisis quincenal.")
@@ -212,9 +323,13 @@ elif rango >= 13 and rango <= 16:
 
   # Filtrar las transacciones de tipo 0
   df_filtered = df_transacciones[df_transacciones['TIPO_TRANSACCION'] == '0'].copy()
-
+  df_appcdmx = df_filtered[df_filtered['LOCATION_ID'] == '101801']    
+  df_digital = df_filtered[df_filtered['LOCATION_ID'] == '101800']    
+  df_fisicas = df_filtered[df_filtered['LOCATION_ID'] == '201A00']    
   # Obtener el monto total
-  monto = df_filtered['MONTO_TRANSACCION'] / 100
+  montoAppcdmx = df_appcdmx['MONTO_TRANSACCION'] / 100
+  montoDigital = df_digital['MONTO_TRANSACCION'] / 100
+  montoFisico = df_fisicas['MONTO_TRANSACCION'] / 100
   
   # Obtener las tarjetas únicas
   tarjetas_unicas = df_filtered['NUMERO_SERIE_HEX'].unique()
@@ -223,7 +338,9 @@ elif rango >= 13 and rango <= 16:
   tarjetas.append({
     '# Tarjetas': len(tarjetas_unicas),
     '# Transacciones': len(df_filtered),
-    '$ Promedio': monto.mean(),
+    '$ Promedio Digital': montoDigital.mean(),
+    '$ Promedio Fisico': montoFisico.mean(),
+    '$ Promedio AppCDMX': montoAppcdmx.mean(),
   })
 
   if dia_in == 1:
@@ -260,6 +377,14 @@ elif rango >= 13 and rango <= 16:
     width = 0.8
     ptime = f'{first} quincena {mes_nombre}'
     crear_grafico(rango,resultados,title,nombre_grafico,width, ptime)
+    ##
+    nameGrApp = f'AppCDMX_Grafico_{first}_qna_{mes_nombre}.png'
+    titleApp = f'Comportamiento AppCDMX {first} qna {mes_nombre}'
+    grafico_appcdmx(df_transacciones,titleApp,nameGrApp)
+    ##
+    nameGrRRE = f'RRE_GraficoLin_{first}_qna_{mes_nombre}.png'
+    titleRRE = f'Comportamiento RRE {first} qna {mes_nombre}'
+    grafico_lineal_RRE(df_transacciones,titleRRE,nameGrRRE)
   ## Condicion para la segunda Quincena
   elif dia_in == 16:
     print(f"Analizando la {second} qna de {mes_nombre}")
@@ -294,6 +419,14 @@ elif rango >= 13 and rango <= 16:
     width = 0.8
     ptime = f'{second} quincena {mes_nombre}'
     crear_grafico(rango,resultados,title,nombre_grafico, width,ptime)
+    ##
+    nameGrApp = f'AppCDMX_Grafico_{second}_qna_{mes_nombre}.png'
+    titleApp = f'Comportamiento AppCDMX {second} qna {mes_nombre}'
+    grafico_appcdmx(df_transacciones,titleApp,nameGrApp)
+    ##
+    nameGrRRE = f'RRE_GraficoLin_{second}_qna_{mes_nombre}.png'
+    titleRRE = f'Comportamiento RRE {second} qna {mes_nombre}'
+    grafico_lineal_RRE(df_transacciones,titleRRE,nameGrRRE)
 ## Inicia el Condicional para los meses    
 elif rango > 16:
   ## Se guarda la concatenacion de todo el mes para conciliacion con SEMOVI
@@ -315,6 +448,13 @@ elif rango > 16:
   archivo_mens = f"RRE_{mes_nombre}.csv"
   ruta_res_mens = os.path.join(ruta_guardado, archivo_mens)
   resultados.to_csv(ruta_res_mens, index=False)
+  nameGrApp = f'AppCDMX_Grafico_{mes_nombre}.png'
+  titleApp = f'Comportamiento AppCDMX {mes_nombre}'
+  grafico_appcdmx(df_transacciones,titleApp,nameGrApp)
+  ##
+  nameGrRRE = f'RRE_GraficoLin_{mes_nombre}.png'
+  titleRRE = f'Comportamiento RRE {mes_nombre}'
+  grafico_lineal_RRE(df_transacciones,titleRRE,nameGrRRE)
   ## Aqui inicia el proceso para el analisis del documento de mercado pago
   ########################################################################
   ## Totales de transacciones fisicas para poder realizar operaciones
@@ -457,4 +597,3 @@ elif rango > 16:
       df_merge_fil.to_excel(writer, index=False ,sheet_name=f'Transacciones penalizables {mes_nombre}')
 
   print("Proceso realizado con Exito!!")
-  
