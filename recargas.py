@@ -13,7 +13,7 @@ m = "03"
 y = "2024"
 
 ##
-semana = "9"
+semana = "10"
 ## Nombre de las extenciones de los archivos que ocupara el script para realizar 
 a = "-Transacciones.csv"
 ae = "-Transacciones-extension.csv"
@@ -23,8 +23,8 @@ ruta_guardado = f"Transacciones/{y}/{m} {mes_nombre}"
 
 ## Este es el rango de dias en el que se trabajara, para el tema del ultimo dia siempre se le sumara 1
 ## Ejemplo primera quincena dia_fn = 16 el metodo range trabaja de esa forma
-dia_in = 1
-dia_fn = 4
+dia_in = 4
+dia_fn = 11
 rango = dia_fn - dia_in
 
 ## Listado de los archvios -Transacciones.csv
@@ -106,171 +106,213 @@ def resumen_transacciones(transacciones):
     })
   return resumen
 ## Definir funcion para crear graficos:
+def grafico_appCDMX(df,title,name,periodo):
+  print(f"Creando Grafico AppCDMX..")
+  ## Obtener los valores para el grafico
+  dias = df['FECHA']
+  appcdmx_tr = df['TR AppCDMX']
+  appcdmx_mt = df['Montos AppCDMX']
 
-def crear_grafico(rango,resultados,title,nombre_grafico,width,ptime):
-    ## Grafico
-    print("Creando Grafico")
+  ## Declaracion del Grafico
+  plt.style.use('seaborn-v0_8-paper')
+  ## Definimos el objeto grafico (ancho,alto)
+  fig,ax = plt.subplots(figsize=(18,8))
+  ## Definimos el Area que ocupara el grafico
+  plt.subplots_adjust(left=0.05, right=0.94, bottom=0.148, top=0.94)
+  ## Valores base p
+  ax2 = ax.twinx()
+  p = ax.bar(dias,appcdmx_tr,label='Transacciones',color='#b81532')
+  for i in enumerate(appcdmx_tr):
+    ax.bar_label(p, label_type='center', color='#fff',fontsize=11,**{'fmt': '{:,.0f}'})
+  for i, mt in enumerate(appcdmx_mt):
+    ax2.annotate(f'${mt:,.0f}', (dias[i], mt), xytext=(-20,10), textcoords='offset points', fontsize=12, fontweight=600,color='#4b0615')  
+  ax2.plot(dias,appcdmx_mt,label='Montos',color='#f8747e', marker='o',linestyle='solid')
+  ## Creamos una legenda fuera del grafico
+  fig.legend(loc='lower center', ncols=2, fontsize=12)
+  # Ajusta el formato de los valores en el eje Y
+  ax.yaxis.set_major_formatter(lambda x, pos: f'{x:,.0f}')
+  ax2.yaxis.set_label_position("right")
+  ax2.yaxis.set_major_formatter(lambda x, pos: f'${x:,.0f}')
+  ##
+  ax.tick_params(axis='x', labelsize=10)
+  ax.tick_params(axis='y', labelsize=10)
+  ax2.tick_params(axis='y', labelsize=10)
+  ax.set_title(title,fontsize=14,fontweight=600)
+  ax.set_xlabel(periodo,fontsize=12,fontweight=600)
+  ax.set_ylabel('Transacciones',fontsize=12,fontweight=600)
+  ax2.set_ylabel('Montos',fontsize=12,fontweight=600)
+  # Guarda el gráfico en alta resolución
+  ruta_grafico = os.path.join(ruta_guardado, name)
+  plt.savefig(ruta_grafico,format='png',dpi=980,bbox_inches='tight')
+  
+def grafico_digitales(df,title,name,periodo):
+  print(f"Creando Grafico Digitales...")
+  ##
+  dias = df['FECHA']
+  digitales_tr = df['TR Digitales'] 
+  digitales_mt = df['Montos Digitales'] 
     ## Definir el estilo del grafico
-    plt.style.use('seaborn-v0_8-paper')
-    ## Definir el ancho de cada una de las barras
-    width = width  
+  plt.style.use('seaborn-v0_8-paper')
     ## Definimos el objeto grafico (ancho,alto)
-    fig,ax = plt.subplots(figsize=(18,8))
+  fig,ax = plt.subplots(figsize=(18,8))
+  plt.subplots_adjust(left=0.05, right=0.94, bottom=0.148, top=0.94)
     ## Valores base para las barras apiladas
-    bottom = np.zeros(rango)
     ## Colores para las barras
-    colors = ['#385723','#a50021'] 
-    # Define variables
-    fechas = resultados['FECHA']
-    tr_rrd = resultados['TR Digitales'] + resultados['TR AppCDMX']
-    tr_rrf = resultados['TR Fisicas']
-    mto_tt = resultados['Monto Total']
-    # Asigna nombres a las Series
-    tr_rrd.name = 'TR Digitales'
-    tr_rrf.name = 'TR Fisicas'
-    mto_tt.name = 'Monto Total'
-    # Crea un DataFrame
-    tr_counts = pd.DataFrame({
-        'TR Digitales': np.array(tr_rrd),
-        'TR Fisicas': np.array(tr_rrf),
-    })
-    ## Creamos la iteracion de los datos
-    for i, (tr, tr_count) in enumerate(tr_counts.items()):
-        ## Creamos un grafico de barras
-        p = ax.bar(fechas, tr_count, width, label=tr, bottom=bottom, color=colors[i])
-        ## Generamos el apilamiento de barras
-        bottom += tr_count
-        ## Asignamos las etiwuetas a las barras
-        ax.bar_label(p, label_type='center', color='#fff',fontsize=10,fontweight=600,**{'fmt': '{:,.0f}'})
-    ## Creamos un segundo eje
-    ax2 = ax.twinx()
-    ## Graficamos una linea con el nuevo eje
-    ax2.plot(fechas, mto_tt, label="Montos", color="#fe9c55", marker='o',linestyle="solid")
-    ## Añadimos las etiquetas a la linea
-    for i, (fecha, monto) in enumerate(zip(fechas, mto_tt)):
-        if monto >= min(mto_tt) :  
-            ax2.annotate(f"${monto:,.0f}", (fecha, monto), xytext=(2,5), textcoords='offset points', fontsize=10,fontweight=600)
+  ax2 = ax.twinx()
+  p = ax.bar(dias,digitales_tr,label='Transacciones',color='#08acec')
+  for i in enumerate(digitales_tr):
+    ax.bar_label(p, label_type='center', color='#fff',fontsize=11,**{'fmt': '{:,.0f}'})
+  for i, mt in enumerate(digitales_mt):
+    ax2.annotate(f'${mt:,.0f}', (dias[i], mt), xytext=(-20,10), textcoords='offset points', fontsize=12, fontweight=600,color='#06314b')
 
-    ## Posicionamiento de la etiqueta del eje secundario
-    ax2.yaxis.set_label_position("right")
-    ## Se asignan las etiqetas para los ejes
-    ax2.set_ylabel("Valor Monetario",fontsize=8,fontweight=600)
-    ax.set_ylabel("N° de Transacciones",fontsize=8,fontweight=600)
-    ax.set_xlabel(f'{ptime}',fontsize=8,fontweight=600)
+  ax2.plot(dias,digitales_mt,label='Montos',color='#006fa5', marker='o',linestyle='solid')
+
     ## Creamos una legenda fuera del grafico
-    fig.legend(loc='outside upper left')
+  fig.legend(loc='lower center', ncols=2, fontsize=12)
     # Ajusta el formato de los valores en el eje Y
-    ax.yaxis.set_major_formatter(lambda x, pos: f'{x:,.0f}')
-    ax2.yaxis.set_major_formatter(lambda x, pos: f'{x:,.0f}')
+  ax.yaxis.set_major_formatter(lambda x, pos: f'{x:,.0f}')
+  ax2.yaxis.set_label_position("right")
+  ax2.yaxis.set_major_formatter(lambda x, pos: f'${x:,.0f}')
     # Ajusta el título del gráfico
-    ax.set_title(title,fontsize=12,fontweight=600)
+      # Ajusta el título del gráfico
+  ##
+  ax.tick_params(axis='x', labelsize=10)
+  ax.tick_params(axis='y', labelsize=10)
+  ax2.tick_params(axis='y', labelsize=10)
+  ax.set_title(title,fontsize=14,fontweight=600)
+  ax.set_xlabel(periodo,fontsize=12,fontweight=600)
+  ax.set_ylabel('Transacciones',fontsize=12,fontweight=600)
+  ax2.set_ylabel('Montos',fontsize=12,fontweight=600)
     # Guarda el gráfico en alta resolución
-    ruta_grafico = os.path.join(ruta_guardado, nombre_grafico)
-    plt.savefig(ruta_grafico,format='png',dpi=900,bbox_inches='tight')
-    print("Proceso realizado con Exito!!")
-    
-def grafico_appcdmx(df,title,name):
-  print('Creando grafico AppCDMX')
-  # Define los datos
-  df['TIPO_TRANSACCION'] = df['TIPO_TRANSACCION'].astype('str')
-  df_filtro = df[df['TIPO_TRANSACCION'] == '0'].copy()
-  ## Sacaremos el total de transacciones con el metodo count
-  ## Convertir la columna FECHA_HORA_TRANSACCION a datetime
-  df_filtro['FECHA_HORA_TRANSACCION'] = pd.to_datetime(df_filtro['FECHA_HORA_TRANSACCION'])
-  df_filtro['FECHA_HORA_TRANSACCION'] = df_filtro['FECHA_HORA_TRANSACCION'].dt.strftime('%Y-%m-%d')
-  ## Fechas 
-  fechas_unicas = df_filtro['FECHA_HORA_TRANSACCION'].unique()
-  ## Obtener los valores únicos de la fecha de transacción
-  
-  dias = fechas_unicas
-  dias_tr = []
-  for fecha in fechas_unicas:
-    df_filter = df_filtro.loc[df_filtro['FECHA_HORA_TRANSACCION'] == fecha]
-    df_appcdmx = df_filter[df_filter['LOCATION_ID'] == '101801']
-    tr_totales = df_appcdmx['TIPO_TRANSACCION'].count()
-    dias_tr.append(tr_totales)
-  ###
-  plt.figure(figsize=(18, 8))
-  dias_tr = list(dias_tr)
-  for i, tr in enumerate(dias_tr):
-      plt.annotate(f'{tr:,d}', (dias[i], tr), xytext=(-4,6), textcoords='offset points', fontsize=10, fontweight=600)
-  plt.subplots_adjust(left=0.04, right=0.97, bottom=0.12, top=0.94)
-  y1 = dias_tr
-  plt.plot(dias,y1,label="AppCDMX",marker='o',color='#861313')
-  plt.xticks(fontsize=8, rotation=45)
-  # # Personaliza la gráfica
-  plt.title(title)
-  plt.xlabel("Dias", fontsize=10)
-  plt.ylabel("Transacciones")
-  plt.legend()
-  # # Muestra la gráfica
   ruta_grafico = os.path.join(ruta_guardado, name)
-  plt.savefig(ruta_grafico,format='png',dpi=900,bbox_inches='tight')
-  print("Proceso realizado con Exito!!")
-  
-def grafico_lineal_RRE(df,title,name):
-  print('Creando Grafica Lineal comportamiento RRE')
-  # Define los datos
-  df['TIPO_TRANSACCION'] = df['TIPO_TRANSACCION'].astype('str')
-  df_filtro = df[df['TIPO_TRANSACCION'] == '0'].copy()
-  ##
-  df_filtro['FECHA_HORA_TRANSACCION'] = pd.to_datetime(df_filtro['FECHA_HORA_TRANSACCION'])
-  df_filtro['FECHA_HORA_TRANSACCION'] = df_filtro['FECHA_HORA_TRANSACCION'].dt.strftime('%Y-%m-%d')
-  ## Fechas 
-  fechas_unicas = df_filtro['FECHA_HORA_TRANSACCION'].unique()
-  ## Obtener los valores únicos de la fecha de transacción
-  dias = fechas_unicas
-  tr_app = []
-  tr_dig = []
-  tr_fis = []
-  for fecha in fechas_unicas:
-    df_filter = df_filtro.loc[df_filtro['FECHA_HORA_TRANSACCION'] == fecha]
-    # appcdmx
-    df_appcdmx = df_filter[df_filter['LOCATION_ID'] == '101801']    
-    tr_app_t = df_appcdmx['TIPO_TRANSACCION'].count()
-    tr_app.append(tr_app_t)
-    # digital
-    df_digital = df_filter[df_filter['LOCATION_ID'] == '101800']    
-    tr_dig_t = df_digital['TIPO_TRANSACCION'].count()
-    tr_dig.append(tr_dig_t)
-    # appcdmx
-    df_fisicas = df_filter[df_filter['LOCATION_ID'] == '201A00']    
-    tr_fis_t = df_fisicas['TIPO_TRANSACCION'].count()
-    tr_fis.append(tr_fis_t)
+  plt.savefig(ruta_grafico,format='png',dpi=980,bbox_inches='tight')
 
-  plt.figure(figsize=(18, 8))
-  # Agrega el valor arriba del marcador para cada día
-  tr_dig = list(tr_dig)
-  for i, tr in enumerate(tr_dig):
-      plt.annotate(f'{tr:,d}', (dias[i], tr), xytext=(-4,6), textcoords='offset points', fontsize=10, fontweight=600)
-  plt.subplots_adjust(left=0.04, right=0.97, bottom=0.12, top=0.94)
+  
+
+def grafico_comercios(df,title,name,periodo):
+  print(f"Creando Grafico Comercios..")
+    ## Grafico
+  dias = df['FECHA']
+  comercios_tr = df['TR Fisicas']
+  comercios_mt = df['Montos Fisicos'] 
+
+    ## Definir el estilo del grafico
+  plt.style.use('seaborn-v0_8-paper')
+    ## Definimos el objeto grafico (ancho,alto)
+  fig,ax = plt.subplots(figsize=(18,8))
+  plt.subplots_adjust(left=0.05, right=0.94, bottom=0.148, top=0.94)
+    ## Valores base para las barras apiladas
+    ## Colores para las barras
+  ax2 = ax.twinx()
+  p = ax.bar(dias,comercios_tr,label='Transacciones',color='#af38c1')
+  for i in enumerate(comercios_tr):
+    ax.bar_label(p, label_type='center', color='#fff',fontsize=11, **{'fmt': '{:,.0f}'})
+  for i, mt in enumerate(comercios_mt):
+    ax2.annotate(f'${mt:,.0f}', (dias[i], mt), xytext=(-20,10), textcoords='offset points', fontsize=12, fontweight=600,color='#420c46')
+
+  ax2.plot(dias,comercios_mt,label='Montos',color='#66246b', marker='o',linestyle='solid')
+
+    ## Creamos una legenda fuera del grafico
+  fig.legend(loc='lower center', ncols=2, fontsize=12)
+    # Ajusta el formato de los valores en el eje Y
+  ax2.yaxis.set_label_position("right")
+  ax.yaxis.set_major_formatter(lambda x, pos: f'{x:,.0f}')
+  ax2.yaxis.set_major_formatter(lambda x, pos: f'${x:,.0f}')
+  # Ajusta el título del gráfico
   ##
-  tr_fis = list(tr_fis)
-  for i, tr in enumerate(tr_fis):
-      plt.annotate(f'{tr:,d}', (dias[i], tr), xytext=(-4,6), textcoords='offset points', fontsize=10, fontweight=600)
-  plt.subplots_adjust(left=0.04, right=0.97, bottom=0.12, top=0.94)
-  ##
-  tr_app = list(tr_app)
-  for i, tr in enumerate(tr_app):
-      plt.annotate(f'{tr:,d}', (dias[i], tr), xytext=(-4,6), textcoords='offset points', fontsize=10, fontweight=600)
-  plt.subplots_adjust(left=0.04, right=0.97, bottom=0.12, top=0.94)
-  ## 
-  y1 = tr_dig
-  y2 = tr_app
-  y3 = tr_fis
-  plt.plot(dias,y1,label="Digitales",marker='o',color='#269DD1')
-  plt.plot(dias,y3,label="Fisicas",marker='o',color='#7A25A4')
-  plt.plot(dias,y2,label="AppCDMX",marker='o',color='#861313')
-  plt.xticks(fontsize=8, rotation=45)
-  ## Personaliza la gráfica
-  plt.title(title)
-  plt.xlabel("Dias", fontsize=10)
-  plt.ylabel("Transacciones")
-  plt.legend()
-  # # Muestra la gráfica
+  ax.tick_params(axis='x', labelsize=10)
+  ax.tick_params(axis='y', labelsize=10)
+  ax2.tick_params(axis='y', labelsize=10)
+  ax.set_title(title,fontsize=14,fontweight=600)
+  ax.set_xlabel(periodo,fontsize=12,fontweight=600)
+  ax.set_ylabel('Transacciones',fontsize=12,fontweight=600)
+  ax2.set_ylabel('Montos',fontsize=12,fontweight=600)
+    # Guarda el gráfico en alta resolución
   ruta_grafico = os.path.join(ruta_guardado, name)
-  plt.savefig(ruta_grafico,format='png',dpi=900,bbox_inches='tight')
-  print("Proceso realizado con Exito!!")
+  plt.savefig(ruta_grafico,format='png',dpi=980,bbox_inches='tight')
+
+def grafico_rre(df,title,name,periodo):
+    ## Grafico
+  dias = df['FECHA']
+  digitales_tr = df['TR Digitales']  
+  appcdmx_tr = df['TR AppCDMX']
+  comercios_tr = df['TR Fisicas']
+  digitales_mt = df['Montos Digitales']  
+  appcdmx_mt = df['Montos AppCDMX']
+  comercios_mt = df['Montos Fisicos']
+    
+    ## Definir el estilo del grafico
+  plt.style.use('seaborn-v0_8-paper')
+  # plt.style.use('seaborn-v0_8-whitegrid')
+  # plt.style.use('grayscale')
+
+    ## Definimos el objeto grafico (ancho,alto)
+  fig,ax = plt.subplots(figsize=(18,8))
+  plt.subplots_adjust(left=0.05, right=0.926, bottom=0.148, top=0.94)
+    ## Valores base para las barras apiladas
+    ## Colores para las barras
+# Create stacked bars using bar_stack
+  # Create a dataframe to simplify plotting
+  tipos = {
+      'AppCDMx': appcdmx_mt,
+      'Comercios': comercios_mt,
+      'Digitales': digitales_mt
+  }
+
+  x = np.arange(len(dias))  # the label locations
+  width = 0.25  # the width of the bars
+  multiplier = 0
+
+  colors = {  # Dictionary of colors for each attribute
+      'AppCDMx': '#b81532',
+      'Comercios': '#af38c1',
+      'Digitales': '#08acec'
+  }
+  lColors = {
+    'AppCDMx': '#4b0615',
+    'Comercios': '#420c46',
+    'Digitales': '#06314b'
+  }
+  for attribute, measurement in tipos.items():
+      offset = width * multiplier
+      color = colors.get(attribute)  # Get color from dictionary
+      lcolor = lColors.get(attribute)  
+      rects = ax.bar(x + offset, measurement, width, label=attribute, color=color)
+      ax.bar_label(rects,label_type='center',padding=2,color=lcolor,fontweight=600,fontsize=9, labels=[f'${value:,.0f}' for value in measurement])
+
+      multiplier += 1
+  
+  ax2 = ax.twinx()
+  for i, tr in enumerate(appcdmx_tr):
+    ax2.annotate(f'{tr:,.0f}', (dias[i], tr), xytext=(-20,10), textcoords='offset points', fontsize=9, color='#4b0615')
+  ax2.plot(dias,appcdmx_tr,label='Montos Appcdmx',color='#f8747e', marker='o',linestyle='solid')
+  
+  for i, tr in enumerate(comercios_tr):
+    ax2.annotate(f'{tr:,.0f}', (dias[i], tr), xytext=(-20,10), textcoords='offset points', fontsize=9, color='#420c46')
+  ax2.plot(dias,comercios_tr,label='Montos Comercios',color='#66246b', marker='o',linestyle='solid')
+  
+  for i, tr in enumerate(digitales_tr):
+    ax2.annotate(f'{tr:,.0f}', (dias[i], tr), xytext=(-20,10), textcoords='offset points', fontsize=9, color='#06314b')
+  ax2.plot(dias,digitales_tr,label='Montos Digitales',color='#006fa5', marker='o',linestyle='solid')
+  
+    ## Creamos una legenda fuera del grafico
+  fig.legend(loc='lower center', ncols=6, fontsize=12)
+    # Ajusta el formato de los valores en el eje Y
+  ax2.yaxis.set_label_position("right")
+  ax.yaxis.set_major_formatter(lambda x, pos: f'${x:,.0f}')
+  ax2.yaxis.set_major_formatter(lambda x, pos: f'{x:,.0f}')
+    # Ajusta el título del gráfico
+  ax.tick_params(axis='x', labelsize=10)
+  ax.tick_params(axis='y', labelsize=10)
+  ax2.tick_params(axis='y', labelsize=10)
+  ax.set_title(title,fontsize=14,fontweight=600)
+  ax.set_xlabel(periodo,fontsize=12,fontweight=600)
+  ax.set_ylabel('Transacciones',fontsize=12,fontweight=600)
+  ax2.set_ylabel('Montos',fontsize=12,fontweight=600)
+    # Guarda el gráfico en alta resolución
+  ruta_grafico = os.path.join(ruta_guardado, name)
+  plt.savefig(ruta_grafico,format='png',dpi=980,bbox_inches='tight')
+
 
 ## Inicia el condicional para los dias sueltos
 if rango < 13 :
@@ -295,19 +337,28 @@ if rango < 13 :
     archivo_full = f"Full_ext_semana_{semana}_{mes_nombre}.csv"
     ruta_full = os.path.join(ruta_guardado, archivo_full)
     df_extenciones.to_csv(ruta_full, index=False)
-    nombre_grafico = f'RR_Grafico_Semana_{semana}.png'
-    title = f'Montos recaudados por tipo de red semana {semana}'
-    width = 0.6
-    ptime = f"Semana {semana}"
-    crear_grafico(rango,resultados,title,nombre_grafico,width,ptime)
+
     ##
     nameGrApp = f'AppCDMX_Grafico_Semana_{semana}.png'
     titleApp = f'Comportamiento AppCDMX semana {semana}'
-    grafico_appcdmx(df_transacciones,titleApp,nameGrApp)
+    periodoApp = f'Semana {semana}'
+    grafico_appCDMX(resultados,titleApp,nameGrApp,periodoApp)
     ##
-    nameGrRRE = f'RRE_GraficoLin_Semana_{semana}.png'
+    nameGrDig = f'Dig_Grafico_Semana_{semana}.png'
+    titleDig = f'Comportamiento Digitales semana {semana}'
+    periodoDig = f'Semana {semana}'
+    grafico_digitales(resultados,titleDig,nameGrDig,periodoDig)
+    ##
+    nameGrCom = f'Com_Grafico_Semana_{semana}.png'
+    titleCom = f'Comportamiento Comercios semana {semana}'
+    periodoCom = f'Semana {semana}'
+    grafico_comercios(resultados,titleCom,nameGrCom,periodoCom)
+    ##
+    nameGrRRE = f'RRE_Grafico_Semana_{semana}.png'
     titleRRE = f'Comportamiento RRE semana {semana}'
-    grafico_lineal_RRE(df_transacciones,titleRRE,nameGrRRE)
+    periodoRRE = f'Semana {semana}'
+    grafico_rre(resultados,titleRRE,nameGrRRE,periodoRRE)
+
 ## Inicia el condicional para las Quincenas        
 elif rango >= 13 and rango <= 16:
   print("Realizando analisis quincenal.")
@@ -372,19 +423,25 @@ elif rango >= 13 and rango <= 16:
     res_tarjetas.to_csv(ruta_resultados, index=False)
     
     ## Grafico
-    title = f'Transacciones por tipo de red por día del {dia_in} al {dia_fn -1} de {mes_nombre}'
-    nombre_grafico = f'RR_Grafico_{first}_qna.png'
-    width = 0.8
-    ptime = f'{first} quincena {mes_nombre}'
-    crear_grafico(rango,resultados,title,nombre_grafico,width, ptime)
-    ##
     nameGrApp = f'AppCDMX_Grafico_{first}_qna_{mes_nombre}.png'
     titleApp = f'Comportamiento AppCDMX {first} qna {mes_nombre}'
-    grafico_appcdmx(df_transacciones,titleApp,nameGrApp)
+    periodoApp = f'{first} qna {mes_nombre}'
+    grafico_appCDMX(resultados,titleApp,nameGrApp,periodoApp)
     ##
-    nameGrRRE = f'RRE_GraficoLin_{first}_qna_{mes_nombre}.png'
+    nameGrDig = f'Dig_Grafico_{first}_qna_{mes_nombre}.png'
+    titleDig = f'Comportamiento Digitales {first} qna {mes_nombre}'
+    periodoDig = f'{first} qna {mes_nombre}'
+    grafico_digitales(resultados,titleDig,nameGrDig,periodoDig)
+    ##
+    nameGrCom = f'Com_Grafico_{first}_qna_{mes_nombre}.png'
+    titleCom = f'Comportamiento Comercios {first} qna {mes_nombre}'
+    periodoCom = f'{first} qna {mes_nombre}'
+    grafico_comercios(resultados,titleCom,nameGrCom,periodoCom)
+    ##
+    nameGrRRE = f'RRE_Grafico_{first}_qna_{mes_nombre}.png'
     titleRRE = f'Comportamiento RRE {first} qna {mes_nombre}'
-    grafico_lineal_RRE(df_transacciones,titleRRE,nameGrRRE)
+    periodoRRE = f'{first} qna {mes_nombre}'
+    grafico_rre(resultados,titleRRE,nameGrRRE,periodoRRE)
   ## Condicion para la segunda Quincena
   elif dia_in == 16:
     print(f"Analizando la {second} qna de {mes_nombre}")
@@ -414,19 +471,26 @@ elif rango >= 13 and rango <= 16:
     ruta_resultados = os.path.join(ruta_guardado, archivo_tar)
     res_tarjetas.to_csv(ruta_resultados, index=False)
     ## Grafico
-    nombre_grafico = f'RR_Grafico_{second}_qna.png'
-    title = f'Transacciones por tipo de red por día del {dia_in} al {dia_fn -1} de enero'
-    width = 0.8
-    ptime = f'{second} quincena {mes_nombre}'
-    crear_grafico(rango,resultados,title,nombre_grafico, width,ptime)
-    ##
+    ## Grafico
     nameGrApp = f'AppCDMX_Grafico_{second}_qna_{mes_nombre}.png'
     titleApp = f'Comportamiento AppCDMX {second} qna {mes_nombre}'
-    grafico_appcdmx(df_transacciones,titleApp,nameGrApp)
+    periodoApp = f'{second} qna {mes_nombre}'
+    grafico_appCDMX(resultados,titleApp,nameGrApp,periodoApp)
     ##
-    nameGrRRE = f'RRE_GraficoLin_{second}_qna_{mes_nombre}.png'
+    nameGrDig = f'Dig_Grafico_{second}_qna_{mes_nombre}.png'
+    titleDig = f'Comportamiento Digitales {second} qna {mes_nombre}'
+    periodoDig = f'{second} qna {mes_nombre}'
+    grafico_digitales(resultados,titleDig,nameGrDig,periodoDig)
+    ##
+    nameGrCom = f'Com_Grafico_{second}_qna_{mes_nombre}.png'
+    titleCom = f'Comportamiento Comercios {second} qna {mes_nombre}'
+    periodoCom = f'{second} qna {mes_nombre}'
+    grafico_comercios(resultados,titleCom,nameGrCom,periodoCom)
+    ##
+    nameGrRRE = f'RRE_Grafico_{second}_qna_{mes_nombre}.png'
     titleRRE = f'Comportamiento RRE {second} qna {mes_nombre}'
-    grafico_lineal_RRE(df_transacciones,titleRRE,nameGrRRE)
+    periodoRRE = f'{second} qna {mes_nombre}'
+    grafico_rre(resultados,titleRRE,nameGrRRE,periodoRRE)
 ## Inicia el Condicional para los meses    
 elif rango > 16:
   ## Se guarda la concatenacion de todo el mes para conciliacion con SEMOVI
@@ -448,13 +512,6 @@ elif rango > 16:
   archivo_mens = f"RRE_{mes_nombre}.csv"
   ruta_res_mens = os.path.join(ruta_guardado, archivo_mens)
   resultados.to_csv(ruta_res_mens, index=False)
-  nameGrApp = f'AppCDMX_Grafico_{mes_nombre}.png'
-  titleApp = f'Comportamiento AppCDMX {mes_nombre}'
-  grafico_appcdmx(df_transacciones,titleApp,nameGrApp)
-  ##
-  nameGrRRE = f'RRE_GraficoLin_{mes_nombre}.png'
-  titleRRE = f'Comportamiento RRE {mes_nombre}'
-  grafico_lineal_RRE(df_transacciones,titleRRE,nameGrRRE)
   ## Aqui inicia el proceso para el analisis del documento de mercado pago
   ########################################################################
   ## Totales de transacciones fisicas para poder realizar operaciones
