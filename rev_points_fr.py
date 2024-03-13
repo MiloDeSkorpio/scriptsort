@@ -2,7 +2,7 @@
 import os
 import pandas as pd
 
-## 
+## Lista Para Buscar en las bases
 smartpos_list = [
             'SMARTPOS1494242323',
             'SMARTPOS1494242822',
@@ -16,6 +16,7 @@ smartpos_list = [
             'SMARTPOS1494240425',
             'SMARTPOS1494574794',
             ]
+## Listas para Cabezal
 smartpos_list_id = [
             '1494242323',
             '1494242822',
@@ -82,11 +83,6 @@ for smartpos in smartpos_list:
     match = pd.merge(df_trmes, smartpos_filtered, on="ID_TRANSACCION_ORGANISMO", how="inner")
     coincidencias.append(match)
 df_coincidencias = pd.concat(coincidencias,ignore_index=True)
-
-# archivo_mens = f"FR_SMARTPOS_{mes_nombre}.csv"
-# ruta_res_mens = os.path.join(ruta_guardado, archivo_mens)
-# df_coincidencias.to_csv(ruta_res_mens, index=False)
-###
 ## Convertir la columna FECHA_HORA_TRANSACCION a datetime
 df_coincidencias['FECHA_HORA_TRANSACCION'] = pd.to_datetime(df_coincidencias['FECHA_HORA_TRANSACCION'])
 df_coincidencias['FECHA_HORA_TRANSACCION'] = df_coincidencias['FECHA_HORA_TRANSACCION'].dt.strftime('%Y-%m-%d')
@@ -142,12 +138,18 @@ for fecha in fechas_unicas:
       smartpos_list_id[9]: smpo10,
       smartpos_list_id[10]: smpo11,
   })
+## Dispersion por POST
 res = pd.DataFrame(post)
 res = res.sort_values(by='FECHA')
-print(res)  
 archivo_res = f"Disp_POST_{mes_nombre}.csv"
-ruta_resultados = os.path.join(ruta_guardado,archivo_res )
-res.to_csv(ruta_resultados, index=False)
+ruta_res = os.path.join(ruta_guardado,archivo_res )
+res.to_csv(ruta_res, index=False)
+## Resumen General
+resumen = pd.DataFrame(post)
+resumen = resumen.sort_values(by='FECHA')
+archivo_resumen = f"RESUMEN_POST_{mes_nombre}.csv"
+ruta_resultados = os.path.join(ruta_guardado,archivo_resumen)
+resumen.to_csv(ruta_resultados, index=False)
 
 print('Analisis Finalizado con Exito!!')
 
