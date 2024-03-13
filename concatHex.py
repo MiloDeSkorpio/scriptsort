@@ -2,23 +2,16 @@
 import os
 import pandas as pd
 # Directorio donde se encuentran los archivos CSV y la cual sera la base de trabajo del Script
-ruta_guardado = "Transacciones/hexids"
+ruta_guardado = "Transacciones/2024/02 Febrero"
 
 # Definir el nombre del archivo que contendra la union de todos
-validadores = "Recargas_ORT_2023.csv"
+validadores = "Febrero-2024.csv"
 # Definir los nombres de los archivos que se van a leer
 archivos_a_leer = [
-    "Hex_ID_Enero.csv",
-    "Hex_ID_Febrero.csv",
-    "Hex_ID_Marzo.csv",
-    "Hex_ID_Abril.csv",
-    "Hex_ID_Mayo.csv",
-    "Hex_ID_Junio.csv",
-    "Hex_ID_Julio.csv",
-    "Hex_ID_Agosto.csv",
-    "Hex_ID_Septiembre.csv",
-    "Hex_ID_Octubre.csv",
-    "Hex_ID_Noviembre.csv",
+    "20240216-Transacciones.csv",
+    "20240217-Transacciones.csv",
+    "20240218-Transacciones.csv",
+
 ]
 
 # Lista para almacenar los DataFrames de los archivos
@@ -33,3 +26,4 @@ for archivo in archivos_a_leer:
 df_valid = pd.concat(dataframes,ignore_index=True)
 ruta_validadores = os.path.join(ruta_guardado,validadores)
 df_valid.to_csv(ruta_validadores,index=False)
+
