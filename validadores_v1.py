@@ -12,14 +12,58 @@ y = "2024"
 ruta_trabajo = f"Validadores/{y}/{m} {mes}"
 
 ## Es el periodo en el que se realiza el analisis
-periodo = "05 AL 11 DE FEBRERO"
+periodo = "2da qna febrero"
 
 ## Archivo a subir 
-file_to_upload = 'VALIDACIONES DEL 05 AL 11 DE FEBRERO 2024.csv'
+file_to_upload = 'Validaciones 2da qna febrero 2024.csv'
 
 ## metodo para asignar la ruta al archivo
 archivo = os.path.join(ruta_trabajo, file_to_upload)
 df = pd.read_csv(archivo, low_memory=False, encoding='latin-1')
+
+df.LINEA.replace('1', 'MIIT', inplace=True)
+df.LINEA.replace('2', 'SAUSA', inplace=True)
+df.LINEA.replace('3', 'ATROLSA', inplace=True)
+df.LINEA.replace('4', 'CEUSA', inplace=True)
+df.LINEA.replace('5', 'TRIOXA', inplace=True)
+df.LINEA.replace('6', 'ACASA', inplace=True)
+df.LINEA.replace('7', 'AULSA', inplace=True)
+df.LINEA.replace('9', 'COPATTSA', inplace=True)
+df.LINEA.replace('11', 'CODIVERSA', inplace=True)
+df.LINEA.replace('12', 'COPESA', inplace=True)
+df.LINEA.replace('13', 'TVO', inplace=True)
+df.LINEA.replace('15', 'ABC', inplace=True)
+df.LINEA.replace('16', 'MOVIN', inplace=True)
+df.LINEA.replace('17', 'COAVEO', inplace=True)
+df.LINEA.replace('D', 'AMOPSA', inplace=True)
+df.LINEA.replace('E', 'CETRAM ZAPATA', inplace=True)
+df.LINEA.replace('34', 'CETRAM BUENAVISTA', inplace=True)
+df.LINEA.replace('36', 'CETRAM TACUBAYA', inplace=True)
+
+lineas = [ 
+          'MIIT', 
+          'SAUSA', 
+          'ATROLSA', 
+          'CEUSA', 
+          'TRIOXA', 
+          'ACASA', 
+          'AULSA', 
+          'COPATTSA', 
+          'CODIVERSA', 
+          'COPESA', 
+          'TVO', 
+          'ABC',
+          'MOVIN',
+          'COAVEO',
+          'AMOPSA',
+          'CETRAM ZAPATA', 
+          'CETRAM BUENAVISTA', 
+          'CETRAM TACUBAYA'
+        ]
+for linea in lineas:
+    df_linea = df[df['LINEA'] == str(linea)]
+    df_buses = df_linea[df_linea['TIPO_TRANSACCION'] == 3]
+    print(df_buses['FECHA_HORA_TRANSACCION'])
 
 ## Convetir la fecha a aun formato donde se puedan leer de forma unica
 df['FECHA_HORA_TRANSACCION'] = pd.to_datetime(df['FECHA_HORA_TRANSACCION'], format="%d/%m/%Y %H:%M")
@@ -41,6 +85,7 @@ for fecha in fechas_unicas:
     df_pgo = df_fecha[df_fecha['TIPO_TRANSACCION'] == '70'] # Gratuidad de operacion
     df_tra = df_fecha[df_fecha['TIPO_TRANSACCION'] == '7'] # Transbordo
     df_sal = df_fecha[df_fecha['TIPO_TRANSACCION'] == '11'] # Salida
+    df_gsp = df_fecha[df_fecha['TIPO_TRANSACCION'] == '4'] # Salida
     
     ## transacciones no exitosas, no permiten acceso
     df_gra = df_fecha[df_fecha['TIPO_TRANSACCION'] == '0D'] # rechazo de tarjeta en lista negra 
@@ -67,7 +112,8 @@ for fecha in fechas_unicas:
         'Debitos en baño (E)': df_ban.shape[0],
         'Valor de Debitos en autobus': monto_buses,
         'Valor de Debitos en baños': monto_cetrams,
-        'Gratuidad (E)': df_pgo.shape[0],
+        'Gratuidad por Operacion': df_pgo.shape[0],
+        'Gratuidad Supervisor': df_gsp.shape[0],
         'Transbordo (E)': df_tra.shape[0],
         'Salida (E)': df_sal.shape[0],
         'Rechazo de tarjeta por lista negra': df_gra.shape[0],
@@ -91,7 +137,8 @@ sum_row = {
     'Debitos en baño (E)': resultados['Debitos en baño (E)'].sum(),
     'Valor de Debitos en autobus': resultados['Valor de Debitos en autobus'].sum(),
     'Valor de Debitos en baños': resultados['Valor de Debitos en baños'].sum(),
-    'Gratuidad (E)': resultados['Gratuidad (E)'].sum(),
+    'Gratuidad por Operacion': resultados['Gratuidad por Operacion'].sum(),
+    'Gratuidad Supervisor': resultados['Gratuidad Supervisor'].sum(),
     'Transbordo (E)': resultados['Transbordo (E)'].sum(),
     'Salida (E)': resultados['Salida (E)'].sum(),
     'Rechazo de tarjeta por lista negra': resultados['Rechazo de tarjeta por lista negra'].sum(),
@@ -119,7 +166,9 @@ df.LINEA.replace('11', 'CODIVERSA', inplace=True)
 df.LINEA.replace('12', 'COPESA', inplace=True)
 df.LINEA.replace('13', 'TVO', inplace=True)
 df.LINEA.replace('15', 'ABC', inplace=True)
+df.LINEA.replace('14', 'COTAXOMIL', inplace=True)
 df.LINEA.replace('16', 'MOVIN', inplace=True)
+df.LINEA.replace('17', 'COAVEO', inplace=True)
 df.LINEA.replace('D', 'AMOPSA', inplace=True)
 df.LINEA.replace('E', 'CETRAM ZAPATA', inplace=True)
 df.LINEA.replace('34', 'CETRAM BUENAVISTA', inplace=True)
@@ -139,6 +188,8 @@ lineas = [
           'TVO', 
           'ABC',
           'MOVIN',
+          'COAVEO',
+          'COTAXOMIL',
           'AMOPSA',
           'CETRAM ZAPATA', 
           'CETRAM BUENAVISTA', 
@@ -149,13 +200,13 @@ documento_linea = []
 for linea in lineas:
     # Filtrar el DataFrame por la línea actual
     df_linea = df[df['LINEA'] == str(linea)]
-
     ## transacciones exitosas, permiten el acceso
     lin_bus = df_linea[df_linea['TIPO_TRANSACCION'] == '3'] # Debito en Bus
     lin_ban = df_linea[df_linea['TIPO_TRANSACCION'] == '5'] # debito en baño
     lin_pgo = df_linea[df_linea['TIPO_TRANSACCION'] == '70'] # Gratuidad de operacion
     lin_tra = df_linea[df_linea['TIPO_TRANSACCION'] == '7'] # Transbordo
     lin_sal = df_linea[df_linea['TIPO_TRANSACCION'] == '11'] # Salida
+    lin_gsp = df_linea[df_linea['TIPO_TRANSACCION'] == '4'] # Salida
     ## transacciones no exitosas, no permiten acceso
     lin_gra = df_linea[df_linea['TIPO_TRANSACCION'] == '0D'] # rechazo de tarjeta en lista negra 
     lin_rfw = df_linea[df_linea['TIPO_TRANSACCION'] == '13'] # rechazo de tarjeta fuera de la lista blanca
@@ -176,6 +227,7 @@ for linea in lineas:
         'Valor de Debitos en autobus': lin_mbu,
         'Valor de Debitos en baños': lin_mba,
         'Gratuidad': lin_pgo.shape[0],
+        'Gratuidad Supervisor': lin_gsp.shape[0],
         'Transbordo': lin_tra.shape[0],
         'Salida': lin_sal.shape[0],
         'Rechazo de tarjeta en lista negra': lin_gra.shape[0],
@@ -189,6 +241,7 @@ for linea in lineas:
         'FF': lin_ff.shape[0],
     })
 
+    
 resultados_lin = pd.DataFrame(documento_linea)
 # Calcula los totales
 sum_rows = {
@@ -198,6 +251,7 @@ sum_rows = {
     'Valor de Debitos en autobus': resultados_lin['Valor de Debitos en autobus'].sum(),
     'Valor de Debitos en baños': resultados_lin['Valor de Debitos en baños'].sum(),
     'Gratuidad': resultados_lin['Gratuidad'].sum(),
+    'Gratuidad Supervisor': resultados_lin['Gratuidad Supervisor'].sum(),
     'Transbordo': resultados_lin['Transbordo'].sum(),
     'Salida': resultados_lin['Salida'].sum(),
     'Rechazo de tarjeta en lista negra': resultados_lin['Rechazo de tarjeta en lista negra'].sum(),
@@ -233,6 +287,7 @@ integradores = [
     ],
     [
         'ABC',
+        'MOVIN'
     ],
      [
         'TRIOXA',
@@ -243,6 +298,11 @@ integradores = [
     [
         'COPESA',
     ],
+    [
+        'COAVEO',
+        'COTAXOMIL',
+    ],
+        
 ]
 
 ## Definimos el integrador segun su posicion en el arreglo anterior
@@ -252,6 +312,7 @@ jm = integradores[2]
 bea = integradores[3]
 mpeso= integradores[4]
 insitra= integradores[5]
+scsoft= integradores[6]
 
 ## Creamos una funcion para realizar el analisis por integrador
 def resumen_integrador(df_integrador,df_final):
@@ -275,6 +336,7 @@ def resumen_integrador(df_integrador,df_final):
             df_pgo = df_buses[df_buses['TIPO_TRANSACCION'] == '70'] # Gratuidad de operacion
             df_tra = df_buses[df_buses['TIPO_TRANSACCION'] == '7'] # Transbordo
             df_sal = df_buses[df_buses['TIPO_TRANSACCION'] == '11'] # Salida
+            df_gsp = df_buses[df_buses['TIPO_TRANSACCION'] == '4'] # Gratuidad Supervisor
             ## transacciones no exitosas, no permiten acceso
             df_gra = df_buses[df_buses['TIPO_TRANSACCION'] == '0D'] # rechazo de tarjeta en lista negra 
             df_rfw = df_buses[df_buses['TIPO_TRANSACCION'] == '13'] # rechazo de tarjeta fuera de la lista blanca
@@ -292,6 +354,7 @@ def resumen_integrador(df_integrador,df_final):
                 'Debitos en autobus': df_bus.shape[0],
                 'Debitos en baño': df_ban.shape[0],
                 'Gratuidad': df_pgo.shape[0],
+                'Gratuidad Supervisor': df_gsp.shape[0],
                 'Transbordo': df_tra.shape[0],
                 'Salida': df_sal.shape[0],
                 'Rechazo de tarjeta en lista negra': df_gra.shape[0],
@@ -311,7 +374,7 @@ def resumen_integrador(df_integrador,df_final):
             'Linea': 'Total',
             'Debitos en autobus': res_microsafe['Debitos en autobus'].sum(),
             'Debitos en baño': res_microsafe['Debitos en baño'].sum(),
-            'Gratuidad': res_microsafe['Gratuidad'].sum(),
+            'Gratuidad Supervisor': res_microsafe['Gratuidad Supervisor'].sum(),
             'Transbordo': res_microsafe['Transbordo'].sum(),
             'Salida': res_microsafe['Salida'].sum(),
             'Rechazo de tarjeta en lista negra': res_microsafe['Rechazo de tarjeta en lista negra'].sum(),
@@ -364,6 +427,11 @@ resumen_integrador(insitra,df_insitra)
 df_insi = pd.DataFrame(df_insitra)
 bus_insi = len(df_insi)
 
+df_scsoft = []
+resumen_integrador(scsoft,df_scsoft)
+df_scsoft = pd.DataFrame(df_scsoft)
+bus_scsoft = len(df_scsoft)
+
 
 def totalTran_no_validas(df):
     tb1 = df['Rechazo de tarjeta en lista negra'].sum()
@@ -382,9 +450,10 @@ def totalTran_validas(df):
     tt1 = df['Debitos en autobus'].sum()
     tt2 = df['Debitos en baño'].sum()
     tt3 = df['Gratuidad'].sum()
+    tt6 = df['Gratuidad Supervisor'].sum()
     tt4 = df['Transbordo'].sum()
     tt5 = df['Salida'].sum()
-    total = tt1 + tt2 + tt3 + tt4 + tt5
+    total = tt1 + tt2 + tt3 + tt4 + tt5 +tt6
     return total
 
 ## 
@@ -394,7 +463,8 @@ ttnv_be = totalTran_no_validas(df_be)
 ttnv_jotaeme = totalTran_no_validas(df_jotaeme)
 ttnv_cond = totalTran_no_validas(df_cond)
 ttnv_micro = totalTran_no_validas(df_micro)
-ttnv = ttnv_insi + ttnv_mpe + ttnv_be + ttnv_jotaeme + ttnv_cond + ttnv_micro
+ttnv_scsoft = totalTran_no_validas(df_scsoft)
+ttnv = ttnv_insi + ttnv_mpe + ttnv_be + ttnv_jotaeme + ttnv_cond + ttnv_micro + ttnv_scsoft
 
 ## 
 ttv_insi = totalTran_validas(df_insi)
@@ -403,16 +473,17 @@ ttv_be = totalTran_validas(df_be)
 ttv_jotaeme = totalTran_validas(df_jotaeme)
 ttv_cond = totalTran_validas(df_cond)
 ttv_micro = totalTran_validas(df_micro)
-ttv = ttv_insi + ttv_mpe +ttv_be + ttv_jotaeme + ttv_cond + ttv_micro
+ttv_scsoft = totalTran_validas(df_scsoft)
+ttv = ttv_insi + ttv_mpe +ttv_be + ttv_jotaeme + ttv_cond + ttv_micro + ttv_scsoft
 
 
 resumen = {
-    'Integrador': ['Microsafe','Conduent','Insitra','Mpeso','Bea','JM','Totales'],
-    '# No Exitosas': [ttnv_micro,ttnv_cond,ttnv_insi,ttnv_mpe,ttnv_be,ttnv_jotaeme,ttnv],
-    '% No Exitosas': [ttnv_micro/ttnv,ttnv_cond/ttnv,ttnv_insi/ttnv,ttnv_mpe/ttnv,ttnv_be/ttnv,ttnv_jotaeme/ttnv,''],
-    'No Exitosas x Unidad': [ttnv_micro/bus_micro,ttnv_cond/bus_cond,ttnv_insi/bus_insi,ttnv_mpe/bus_mpe,ttnv_be/bus_be,ttnv_jotaeme/bus_jotaeme,'Maxima: '],
-    '# Exitosas': [ttv_micro,ttv_cond,ttv_insi,ttv_mpe,ttv_be,ttv_jotaeme,ttv],
-    '% Exitosas': [ttv_micro/ttv,ttv_cond/ttv,ttv_insi/ttv,ttv_mpe/ttv,ttv_be/ttv,ttv_jotaeme/ttv,''],
+    'Integrador': ['Microsafe','Conduent','Insitra','Mpeso','Bea','JM','ScSoft','Totales'],
+    '# No Exitosas': [ttnv_micro,ttnv_cond,ttnv_insi,ttnv_mpe,ttnv_be,ttnv_jotaeme,ttnv_scsoft,ttnv],
+    '% No Exitosas': [ttnv_micro/ttnv,ttnv_cond/ttnv,ttnv_insi/ttnv,ttnv_mpe/ttnv,ttnv_be/ttnv,ttnv_jotaeme/ttnv,ttnv_scsoft/ttnv,''],
+    'No Exitosas x Unidad': [ttnv_micro/bus_micro,ttnv_cond/bus_cond,ttnv_insi/bus_insi,ttnv_mpe/bus_mpe,ttnv_be/bus_be,ttnv_jotaeme/bus_jotaeme,ttnv_scsoft/bus_scsoft,'Maxima: '],
+    '# Exitosas': [ttv_micro,ttv_cond,ttv_insi,ttv_mpe,ttv_be,ttv_jotaeme,ttnv_scsoft,ttv],
+    '% Exitosas': [ttv_micro/ttv,ttv_cond/ttv,ttv_insi/ttv,ttv_mpe/ttv,ttv_be/ttv,ttv_jotaeme/ttv,ttv_scsoft/ttv,''],
 }
 
 res_int = pd.DataFrame(resumen)
@@ -429,5 +500,6 @@ with pd.ExcelWriter(ruta_lista) as writer:
     df_mpe.to_excel(writer, index=False ,sheet_name=f'Transacciones Mpeso {mes}')
     df_be.to_excel(writer, index=False ,sheet_name=f'Transacciones Bea {mes}')
     df_jotaeme.to_excel(writer, index=False ,sheet_name=f'Transacciones JM {mes}')
+    df_scsoft.to_excel(writer, index=False ,sheet_name=f'Transacciones ScSoft {mes}')
     
 print('Proceso Finalizado!!')

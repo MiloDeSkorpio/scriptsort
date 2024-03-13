@@ -7,14 +7,15 @@ import numpy as np
 ruta_guardado = "Transacciones/2024/Semanas/Semana 9"
 semana = '9'
 # Definir los nombres de los archivos que se van a leer
+## Agregar los archivos en base a la susecion de fechas confome al calendario
 archivos_a_leer = [
-    "20240303-Transacciones.csv",
-    "20240301-Transacciones.csv",
-    "20240302-Transacciones.csv",
-    "20240229-Transacciones.csv",
     "20240226-Transacciones.csv",
     "20240227-Transacciones.csv",
     "20240228-Transacciones.csv",
+    "20240229-Transacciones.csv",
+    "20240301-Transacciones.csv",
+    "20240302-Transacciones.csv",
+    "20240303-Transacciones.csv",
 ]
 
 # Lista para almacenar los DataFrames de los archivos
@@ -101,6 +102,7 @@ tr_counts = pd.DataFrame({
     'TR Fisicas': np.array(tr_rrf),
 })
 # Crea el gráfico
+print(fechas)
 fig, ax = plt.subplots(figsize=(12,8))
 ## Creamos la iteracion de los datos
 for i, (tr, tr_count) in enumerate(tr_counts.items()):
@@ -129,7 +131,7 @@ ax.set_xlabel(f'Semana {semana}',fontsize=8,fontweight=600)
 fig.legend(loc='outside upper left')
 # Ajusta el formato de los valores en el eje Y
 ax.yaxis.set_major_formatter(lambda x, pos: f'{x:,.0f}')
-ax2.yaxis.set_major_formatter(lambda x, pos: f'{x:,.0f}')
+ax2.yaxis.set_major_formatter(lambda x, pos: f'${x:,.0f}')
 # Ajusta el título del gráfico
 ax.set_title(title,fontsize=12,fontweight=600)
 # Guarda el gráfico en alta resolución
@@ -149,33 +151,34 @@ def grafico_appcdmx(df,title,name):
   ## Obtener los valores únicos de la fecha de transacción
   
   dias = fechas_unicas
-  dias_tr = []
+  dias_mt = []
   for fecha in fechas_unicas:
     df_filter = df_filtro.loc[df_filtro['FECHA_HORA_TRANSACCION'] == fecha]
     df_appcdmx = df_filter[df_filter['LOCATION_ID'] == '101801']
-    tr_totales = df_appcdmx['TIPO_TRANSACCION'].count()
-    dias_tr.append(tr_totales)
+    monto_total = df_appcdmx['MONTO_TRANSACCION'].sum()
+    dias_mt.append(monto_total / 100)
   ###
-  plt.figure(figsize=(18, 8))
-  dias_tr = list(dias_tr)
-  for i, tr in enumerate(dias_tr):
-      plt.annotate(str(tr), (dias[i], tr), xytext=(-4,6), textcoords='offset points', fontsize=10, fontweight=600)
+  fig, ax = plt.subplots(figsize=(18, 8))
+  for i, tr in enumerate(dias_mt):
+    plt.annotate(f'${tr:,.0f}', (dias[i], tr), xytext=(-4,6), textcoords='offset points', fontsize=11, fontweight=600)
   plt.subplots_adjust(left=0.04, right=0.97, bottom=0.12, top=0.94)
-  y1 = dias_tr
-  plt.plot(dias,y1,label="AppCDMX",marker='o',color='#861313')
-  plt.xticks(fontsize=8, rotation=45)
+  y1 = dias_mt
+  ax.plot(dias,y1,label="AppCDMX",marker='o',color='#861313')
+  ax.yaxis.set_major_formatter(lambda x, pos: f'${x:,.0f}')
+  plt.xticks(fontsize=12)
+  plt.yticks(fontsize=12)
   # # Personaliza la gráfica
-  plt.title(title)
-  plt.xlabel("Dias", fontsize=10)
-  plt.ylabel("Transacciones")
-  plt.legend()
+  plt.title(title,fontsize=14,fontweight=600)
+  plt.xlabel("Dias", fontsize=12 ,fontweight=600)
+  plt.ylabel("Montos", fontsize=12 ,fontweight=600 )
+  fig.legend(fontsize=12)
   # # Muestra la gráfica
   ruta_grafico = os.path.join(ruta_guardado, name)
-  plt.savefig(ruta_grafico,format='png',dpi=900,bbox_inches='tight')
+  fig.savefig(ruta_grafico,format='png',dpi=900,bbox_inches='tight')
   print("Generando Grafico AppCDMX!!")
 ##### Args ###
 df = pd.concat(transacciones, ignore_index=True)
-title_gapp = f"Comportamiento Semana {semana}"
+title_gapp = f"Comportamiento AppCDMX Semana {semana}"
 nameGrApp = 'Grafico_AppCDMX.png'
 grafico_appcdmx(df,title_gapp,nameGrApp)
 
@@ -198,46 +201,48 @@ def grafico_lineal_RRE(df,title,name):
     df_filter = df_filtro.loc[df_filtro['FECHA_HORA_TRANSACCION'] == fecha]
     # appcdmx
     df_appcdmx = df_filter[df_filter['LOCATION_ID'] == '101801']    
-    tr_app_t = df_appcdmx['TIPO_TRANSACCION'].count()
-    tr_app.append(tr_app_t)
+    tr_app_t = df_appcdmx['MONTO_TRANSACCION'].sum()
+    tr_app.append(tr_app_t / 100)
     # digital
     df_digital = df_filter[df_filter['LOCATION_ID'] == '101800']    
-    tr_dig_t = df_digital['TIPO_TRANSACCION'].count()
-    tr_dig.append(tr_dig_t)
+    tr_dig_t = df_digital['MONTO_TRANSACCION'].sum()
+    tr_dig.append(tr_dig_t / 100)
     # appcdmx
     df_fisicas = df_filter[df_filter['LOCATION_ID'] == '201A00']    
-    tr_fis_t = df_fisicas['TIPO_TRANSACCION'].count()
-    tr_fis.append(tr_fis_t)
+    tr_fis_t = df_fisicas['MONTO_TRANSACCION'].sum()
+    tr_fis.append(tr_fis_t / 100)
 
-  plt.figure(figsize=(18, 8))
+  fig, ax = plt.subplots(figsize=(18, 8))
   # Agrega el valor arriba del marcador para cada día
   tr_dig = list(tr_dig)
   for i, tr in enumerate(tr_dig):
-      plt.annotate(str(tr), (dias[i], tr), xytext=(-4,6), textcoords='offset points', fontsize=10, fontweight=600)
+      plt.annotate(f'${tr:,.0f}', (dias[i], tr), xytext=(-4,6), textcoords='offset points', fontsize=10, fontweight=600)
   plt.subplots_adjust(left=0.04, right=0.97, bottom=0.12, top=0.94)
   ##
   tr_fis = list(tr_fis)
   for i, tr in enumerate(tr_fis):
-      plt.annotate(str(tr), (dias[i], tr), xytext=(-4,6), textcoords='offset points', fontsize=10, fontweight=600)
+      plt.annotate(f'${tr:,.0f}', (dias[i], tr), xytext=(-4,6), textcoords='offset points', fontsize=10, fontweight=600)
   plt.subplots_adjust(left=0.04, right=0.97, bottom=0.12, top=0.94)
   ##
   tr_app = list(tr_app)
   for i, tr in enumerate(tr_app):
-      plt.annotate(str(tr), (dias[i], tr), xytext=(-4,6), textcoords='offset points', fontsize=10, fontweight=600)
+      plt.annotate(f'${tr:,.0f}', (dias[i], tr), xytext=(-4,6), textcoords='offset points', fontsize=10, fontweight=600)
   plt.subplots_adjust(left=0.04, right=0.97, bottom=0.12, top=0.94)
   ## 
   y1 = tr_dig
   y2 = tr_app
   y3 = tr_fis
-  plt.plot(dias,y1,label="Digitales",marker='o',color='#269DD1')
-  plt.plot(dias,y2,label="AppCDMX",marker='o',color='#861313')
-  plt.plot(dias,y3,label="Fisicas",marker='o',color='#7A25A4')
-  plt.xticks(fontsize=8, rotation=45)
-  ## Personaliza la gráfica
-  plt.title(title)
-  plt.xlabel("Dias", fontsize=10)
-  plt.ylabel("Transacciones")
-  plt.legend()
+  ax.plot(dias,y1,label="Digitales",marker='o',color='#269DD1')
+  ax.plot(dias,y2,label="AppCDMX",marker='o',color='#861313')
+  ax.plot(dias,y3,label="Fisicas",marker='o',color='#7A25A4')
+  ax.yaxis.set_major_formatter(lambda x, pos: f'${x:,.0f}')
+  plt.xticks(fontsize=12)
+  plt.yticks(fontsize=12)
+  # # Personaliza la gráfica
+  plt.title(title,fontsize=14,fontweight=600)
+  plt.xlabel("Dias", fontsize=12 ,fontweight=600)
+  plt.ylabel("Montos", fontsize=12 ,fontweight=600 )
+  fig.legend(fontsize=12)
   # # Muestra la gráfica
   ruta_grafico = os.path.join(ruta_guardado, name)
   plt.savefig(ruta_grafico,format='png',dpi=900,bbox_inches='tight')
