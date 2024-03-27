@@ -3,7 +3,7 @@ import os
 import pandas as pd
 
 ## 
-smartpos = 'SMARTPOS1494574794'
+smartpos = 'SMARTPOS1494126447'
 ## Nombre del mes con texto, se ocupara para leer la carpeta del mes y asignar el nombre a los archivos generados
 mes_nombre = "Marzo"
 
@@ -22,7 +22,7 @@ ruta_guardado = f"Transacciones/{y}/{m} {mes_nombre}"
 ## Este es el rango de dias en el que se trabajara, para el tema del ultimo dia siempre se le sumara 1
 ## Ejemplo primera quincena dia_fn = 16 el metodo range trabaja de esa forma
 dia_in = 1
-dia_fn = 11
+dia_fn = 25
 rango = dia_fn - dia_in
 
 ## Listado de los archvios -Transacciones.csv
@@ -79,7 +79,7 @@ for fecha in fechas_unicas:
   })
   
 res = pd.DataFrame(resumen)
-archivo_res = f"Resumen_{smartpos}_{mes_nombre}.csv"
+archivo_res = f"Resumen_AULSA_{mes_nombre}.csv"
 ruta_resultados = os.path.join(ruta_guardado,archivo_res )
 res.to_csv(ruta_resultados, index=False)
 print(res)

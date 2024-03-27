@@ -27,7 +27,10 @@ unique_card = df_cards['card_number'].unique()
 print(len(unique_user))
 print(len(unique_card))
 
-ctc = ['72845562353',
+# Lista de identificadores de transacción
+ctc = [
+'71718770714',
+'72845562353',
 '72934003383',
 '73181128594',
 '73242073804',
@@ -43,23 +46,58 @@ ctc = ['72845562353',
 '72734827039',
 '72983265303',
 '72966275549',
-'72950086928']
+'72950086928',
+'72937867930',
+'73081827700']
 
+# Lista para almacenar IDs de usuarios
 usuarios = []
+emails = []
+# Recorrer cada ID de transacción
 for idtr in ctc:
-    tr = df_tr[df_tr['id_transacion'] == idtr]
-    id_user = tr['user_id']
-    # print(tr)
-    # print(id_user)
-    usuarios.append(id_user)
+
+  # Filtrar DataFrame por ID de transacción
+  tr = df_tr[df_tr['id_transacion'] == idtr]
+
+  # Obtener ID de usuario
+  id_user = tr['user_id']
+  email_uer = tr['email']
+  # Imprimir información para depuración (opcional)
+  print(tr)
+  print(id_user)
+
+  # Agregar ID de usuario a la lista
+  usuarios.append(id_user)
+  emails.append(email_uer)
+
 
 usuari = pd.concat(usuarios, ignore_index=True)
-print(usuari)
+emas = pd.concat(emails, ignore_index=True)
 
-user_c = []
-for us in usuari:
-    id_us = df_cards[df_cards['user_id'] == us]
-    print(id_us)
-    user_c.append(id_us)
-cards = pd.concat(user_c, ignore_index=True)
-print(cards['card_number'].unique())
+usuarios_uniq = usuari.unique()
+emas_uniq = emas.unique()
+print(usuarios_uniq)
+print(emas.value_counts())
+print(emas_uniq)
+
+# user_c = []
+# for us in usuari:
+#     id_us = df_cards[df_cards['user_id'] == us]
+    
+#     print(id_us)
+    
+#     user_c.append(id_us)
+#     cards = pd.concat(user_c, ignore_index=True)
+
+# usuari = pd.concat(usuarios, ignore_index=True)   
+  
+# print(usuari)
+
+
+
+
+
+
+
+
+# print(cards_em.values_counts())

@@ -13,7 +13,7 @@ m = "03"
 y = "2024"
 
 ##
-semana = "10"
+semana = "12"
 ## Nombre de las extenciones de los archivos que ocupara el script para realizar 
 a = "-Transacciones.csv"
 ae = "-Transacciones-extension.csv"
@@ -23,8 +23,8 @@ ruta_guardado = f"Transacciones/{y}/{m} {mes_nombre}"
 
 ## Este es el rango de dias en el que se trabajara, para el tema del ultimo dia siempre se le sumara 1
 ## Ejemplo primera quincena dia_fn = 16 el metodo range trabaja de esa forma
-dia_in = 4
-dia_fn = 11
+dia_in = 18
+dia_fn = 25
 rango = dia_fn - dia_in
 
 ## Listado de los archvios -Transacciones.csv
