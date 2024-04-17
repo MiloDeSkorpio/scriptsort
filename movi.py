@@ -21,6 +21,7 @@ for lid in df_cb['loc_id']:
 # Print the DataFame with the new 'loc_id_modified' column (without index)
 df_cb['loc_id_m'] = new_ids 
 print(df_cb['loc_id_m'].value_counts())
+print(df_cb['loc_id_m'].values)
 d1 = '2024-03-19'
 d2 = '2024-03-20'
 d3 = '2024-03-21'
