@@ -13,18 +13,10 @@ archivos_a_leer = [
     # "Julio_crudo.csv",
     # "Agosto_crudo.csv",
     # "Septiembre_crudo.csv",
-    # "Octubre_crudo.csv",
-    # "Noviembre_crudo.csv",
-    # "Diciembre_crudo.csv",
-    "Enero_crudo_2023.csv",
-    "Febrero_crudo_2023.csv",
-    "Marzo_crudo_2023.csv",
-    "Abril_crudo_2023.csv",
-    "Mayo_crudo_2023.csv",
-    "Junio_crudo_2023.csv",
-    "Julio_crudo_2023.csv",
-    "Agosto_crudo_2023.csv",
-    "Septiembre_crudo_2023.csv",
+    "Octubre_crudo.csv",
+    "Noviembre_crudo.csv",
+    "Diciembre_crudo.csv",
+
 ]
 
 # Lista para almacenar los DataFrames de los archivos
@@ -60,5 +52,6 @@ print("digitales",df_digital.shape[0],"$",mto_dig)
 print(df_filtered['NUMERO_SERIE_HEX'].value_counts())
 print(df_filtered['NUMERO_SERIE_HEX'].shape[0])
 
+print(len(set(df_filtered['NUMERO_SERIE_HEX'])))
 # ruta_validadores = os.path.join(ruta_guardado,validadores)
 # df_valid.to_csv(ruta_validadores,index=False)
