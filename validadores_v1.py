@@ -12,65 +12,47 @@ y = "2024"
 ruta_trabajo = f"Validadores/{y}/{m} {mes}"
 
 ## Es el periodo en el que se realiza el analisis
-periodo = "01 al 07"
+periodo = "1ra qna"
 
 ## Archivo a subir 
-file_to_upload = 'Validaciones del 01 al 07 de abril 2024.csv'
+file_to_upload = 'Mpeso_1ra qna Abril.csv'
 
 ## metodo para asignar la ruta al archivo
 archivo = os.path.join(ruta_trabajo, file_to_upload)
 df = pd.read_csv(archivo, low_memory=False, encoding='latin-1')
 
-df.LINEA.replace('1', 'MIIT', inplace=True)
-df.LINEA.replace('2', 'SAUSA', inplace=True)
-df.LINEA.replace('3', 'ATROLSA', inplace=True)
-df.LINEA.replace('4', 'CEUSA', inplace=True)
-df.LINEA.replace('5', 'TRIOXA', inplace=True)
-df.LINEA.replace('6', 'ACASA', inplace=True)
-df.LINEA.replace('7', 'AULSA', inplace=True)
-df.LINEA.replace('9', 'COPATTSA', inplace=True)
-df.LINEA.replace('11', 'CODIVERSA', inplace=True)
-df.LINEA.replace('12', 'COPESA', inplace=True)
-df.LINEA.replace('13', 'TVO', inplace=True)
-df.LINEA.replace('15', 'ABC', inplace=True)
-df.LINEA.replace('16', 'MOVIN', inplace=True)
-df.LINEA.replace('17', 'COAVEO', inplace=True)
-df.LINEA.replace('D', 'AMOPSA', inplace=True)
-df.LINEA.replace('E', 'CETRAM ZAPATA', inplace=True)
-df.LINEA.replace('34', 'CETRAM BUENAVISTA', inplace=True)
-df.LINEA.replace('36', 'CETRAM TACUBAYA', inplace=True)
+reemplazos = {
+    '1': 'MIIT',
+    '2': 'SAUSA',
+    '3': 'ATROLSA',
+    '4': 'CEUSA',
+    '5': 'TRIOXA',
+    '6': 'ACASA',
+    '7': 'AULSA',
+    '9': 'COPATTSA',
+    '11': 'CODIVERSA',
+    '12': 'COPESA',
+    '13': 'TVO',
+    '14':'COTAXOMIL',
+    '15': 'ABC',
+    '16': 'MOVIN',
+    '17': 'COAVEO',
+    'D': 'AMOPSA',
+    'E': 'CETRAM ZAPATA',
+    '34': 'CETRAM BUENAVISTA',
+    '36': 'CETRAM TACUBAYA'
+ }
 
-lineas = [ 
-          'MIIT', 
-          'SAUSA', 
-          'ATROLSA', 
-          'CEUSA', 
-          'TRIOXA', 
-          'ACASA', 
-          'AULSA', 
-          'COPATTSA', 
-          'CODIVERSA', 
-          'COPESA', 
-          'TVO', 
-          'ABC',
-          'MOVIN',
-          'COAVEO',
-          'AMOPSA',
-          'CETRAM ZAPATA', 
-          'CETRAM BUENAVISTA', 
-          'CETRAM TACUBAYA'
-        ]
-for linea in lineas:
-    df_linea = df[df['LINEA'] == str(linea)]
-    df_buses = df_linea[df_linea['TIPO_TRANSACCION'] == 3]
-    print(df_buses['FECHA_HORA_TRANSACCION'])
+for codigo, reemplazo in reemplazos.items():
+    df.replace({'LINEA':codigo}, reemplazo, inplace=True)
+lineas = set(df['LINEA'])
 
 ## Convetir la fecha a aun formato donde se puedan leer de forma unica
 df['FECHA_HORA_TRANSACCION'] = pd.to_datetime(df['FECHA_HORA_TRANSACCION'], format="%d/%m/%Y %H:%M")
 df['FECHA_HORA_TRANSACCION'] = df['FECHA_HORA_TRANSACCION'].dt.strftime('%Y-%m-%d')
 
-## Obtener fechas unicas
-fechas_unicas = df['FECHA_HORA_TRANSACCION'].unique()
+# ## Obtener fechas unicas
+fechas_unicas = set(df['FECHA_HORA_TRANSACCION'])
 
 ## definimos un arreglo documento para almancenar los resultados del primer analisis
 documento = []
@@ -154,47 +136,6 @@ sum_row = {
 
 resultados = pd.concat([resultados, pd.DataFrame([sum_row])], ignore_index=True)
 
-df.LINEA.replace('1', 'MIIT', inplace=True)
-df.LINEA.replace('2', 'SAUSA', inplace=True)
-df.LINEA.replace('3', 'ATROLSA', inplace=True)
-df.LINEA.replace('4', 'CEUSA', inplace=True)
-df.LINEA.replace('5', 'TRIOXA', inplace=True)
-df.LINEA.replace('6', 'ACASA', inplace=True)
-df.LINEA.replace('7', 'AULSA', inplace=True)
-df.LINEA.replace('9', 'COPATTSA', inplace=True)
-df.LINEA.replace('11', 'CODIVERSA', inplace=True)
-df.LINEA.replace('12', 'COPESA', inplace=True)
-df.LINEA.replace('13', 'TVO', inplace=True)
-df.LINEA.replace('15', 'ABC', inplace=True)
-df.LINEA.replace('14', 'COTAXOMIL', inplace=True)
-df.LINEA.replace('16', 'MOVIN', inplace=True)
-df.LINEA.replace('17', 'COAVEO', inplace=True)
-df.LINEA.replace('D', 'AMOPSA', inplace=True)
-df.LINEA.replace('E', 'CETRAM ZAPATA', inplace=True)
-df.LINEA.replace('34', 'CETRAM BUENAVISTA', inplace=True)
-df.LINEA.replace('36', 'CETRAM TACUBAYA', inplace=True)
-
-lineas = [ 
-          'MIIT', 
-          'SAUSA', 
-          'ATROLSA', 
-          'CEUSA', 
-          'TRIOXA', 
-          'ACASA', 
-          'AULSA', 
-          'COPATTSA', 
-          'CODIVERSA', 
-          'COPESA', 
-          'TVO', 
-          'ABC',
-          'MOVIN',
-          'COAVEO',
-          'COTAXOMIL',
-          'AMOPSA',
-          'CETRAM ZAPATA', 
-          'CETRAM BUENAVISTA', 
-          'CETRAM TACUBAYA'
-        ]
 
 documento_linea = []
 for linea in lineas:
@@ -266,6 +207,7 @@ sum_rows = {
 }
 
 resultados_lin = pd.concat([resultados_lin, pd.DataFrame([sum_rows])], ignore_index=True)
+
 
 ## Creamos un arreglo que contenga la estructura que tienen o a quien pertenecen segun el integrador
 integradores = [
@@ -367,7 +309,9 @@ def resumen_integrador(df_integrador,df_final):
                 'Transaccion abortada por vigencia expirada': df_tve.shape[0],
                 'FF': df_ff.shape[0],
             })
+
         res_microsafe = pd.DataFrame(df_final)
+
         # Calcula los totales
         sum_row_mi = {
             'Autobus': "#",

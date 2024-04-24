@@ -79,6 +79,8 @@ mes_nombre = "Abril"
 ## Modificar el contenido de Y = "Año" 2023 / 2024 / 2025
 m = "04"
 y = "2024"
+##
+periodo = '13 - 20'
 ## Nombre de las extenciones de los archivos que ocupara el script para realizar
 a = "-Transacciones.csv"
 ae = "-Transacciones-extension.csv"
@@ -86,8 +88,8 @@ ae = "-Transacciones-extension.csv"
 ruta_guardado = f"Transacciones/{y}/{m} {mes_nombre}"
 ## Este es el rango de dias en el que se trabajara, para el tema del ultimo dia siempre se le sumara 1
 ## Ejemplo primera quincena dia_fn = 16 el metodo range trabaja de esa forma
-dia_in = 8
-dia_fn = 15
+dia_in = 15
+dia_fn = 22
 rango = dia_fn - dia_in
 ## Listado de los archvios -Transacciones.csv
 ## Listado de los archivo a leer segun el rango especificado
@@ -143,16 +145,16 @@ for fecha in fechas_unicas:
       'FECHA': fecha,
       **montos_por_smartpos  # Unpack dictionary into key-value pairs
   })
-## Dispersion por POST
-res = pd.DataFrame(post)
-res = res.sort_values(by='FECHA')
-archivo_res = f"Disp_POST_{mes_nombre}.csv"
-ruta_res = os.path.join(ruta_guardado,archivo_res )
-res.to_csv(ruta_res, index=False)
+# ## Dispersion por POST
+# res = pd.DataFrame(post)
+# res = res.sort_values(by='FECHA')
+# archivo_res = f"Disp_POST_{mes_nombre}.csv"
+# ruta_res = os.path.join(ruta_guardado,archivo_res )
+# res.to_csv(ruta_res, index=False)
 ## Resumen General
 resumen = pd.DataFrame(resumen)
 resumen = resumen.sort_values(by='FECHA')
-archivo_resumen = f"RESUMEN_POST_{mes_nombre}.csv"
+archivo_resumen = f"Resumen_FR_{periodo}_{mes_nombre}.csv"
 ruta_resultados = os.path.join(ruta_guardado,archivo_resumen)
 resumen.to_csv(ruta_resultados, index=False)
 print('Analisis Finalizado con Exito!!')

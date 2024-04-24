@@ -94,7 +94,26 @@ ctc = [
     '74485340568',
     '74330547938',
     '74376657983',
-] ## Actualizado hasta 16 de A bril
+    '75563922894',
+    '75944095248',
+    '75771976741',
+    '74565604300',
+    '74867924439',
+    '75956430945',
+    '75172211945',
+    '76059425385',
+    '75737235731',
+    '75723081623',
+    '75956280629',
+    '73217617518',
+    '75386490981',
+    '76112018340',
+    '76139221958',
+    '74272965467',
+    '75019459736',
+    '76004002886',
+    '76066321250',
+] ## Actualizado hasta 23 de Abril
 ## Inicio de Analisis 
 print("Iniciando Analisis")
 print("Ajuste de datos...")
@@ -125,11 +144,19 @@ usuarios_ctc = pd.concat(user_c, ignore_index=True)
 # print(usuarios_ctc)
 ##
 cards_unique = set(usuarios_ctc['card_number'])
+# print(cards_unique)
+cards_fixed = []
 # print(len(cards_unique))
 for card in cards_unique:
-  id_us = usuarios_ctc[usuarios_ctc['card_number'] == str(card.upper())]
-##
+    if len(card) <= 16:
+        card_padded = card.zfill(16)  # Agrega ceros a la izquierda para completar 16 caracteres
+        # Imprime la longitud de la tarjeta con relleno
+        ma_card = card_padded.upper()
+        cards_fixed.append(ma_card)
+
+
 cards_users = pd.concat(user_c, ignore_index=True)
+
 
 # Create a dictionary to store user IDs and their associated card numbers
 print("Creando JSON usuario-tarjetas...")
@@ -168,7 +195,7 @@ adip = trs[['id_transacion', 'user_id', 'monto_recarga', 'fecha_recarga', 'email
 
 transa_mp = []
 
-for card in cards_unique:
+for card in cards_fixed:
     df_mp['TIPO_TRANSACCION'] = df_mp['TIPO_TRANSACCION'].astype('str')
     df_filtro = df_mp[df_mp['TIPO_TRANSACCION'] == '0'].copy()
     df_appcdmx = df_filtro[df_filtro['LOCATION_ID'] == '101801']
@@ -211,14 +238,14 @@ for i, fecha_fsg in enumerate(adip['fecha_recarga_segundos_mas_hora']):
                         minima_diferencia = diferencia_actual
 
                         indice_minimo = i
-                                  
+                        t_card = card_hex.zfill(16)
                         id_user = adip['user_id'].iloc[i] 
                         email = adip['email'].iloc[i] 
                         fecha_adp = adip['fecha_recarga'].iloc[i] 
                         resultados.append( {
                                     'id_transacion':id_tr,
                                     'id_transacion_org': tr_org,
-                                    'card': card_hex,
+                                    'card': t_card,
                                     'fecha_adp': fecha_adp,
                                     'fecha_mp': fecha_mp,
                                     'fecha_fsg': fecha_fsg,
@@ -228,11 +255,11 @@ for i, fecha_fsg in enumerate(adip['fecha_recarga_segundos_mas_hora']):
                                     'user_id':id_usuario_fsg,
                                     'email':email,
                                     }) 
-                        print(f"{id_tr}-{monto_fsg}-{monto_fmp}-{tr_org}-{card_hex}-{diferencia_actual}")
+                        # print(f"{id_tr}-{monto_fsg}-{monto_fmp}-{tr_org}-{card_hex}-{diferencia_actual}")
     relacion_fechas[fecha_fsg] = lista_diferencias
 # print(relacion_fechas)
 resumen = pd.DataFrame(resultados)
-print(resumen)
+# print(resumen)
 # ## Extenciones    
 print("Generando datos extenciones")
 archivo_tr_adip = f"Adip_CTC_{mes_nombre}.csv"
@@ -251,17 +278,3 @@ resumen.to_csv(ruta_re, index=False)
 
 
 print("Proceso Realizado con Exito!!")
-
-
-## Paso 1 Realizar una resta para obtener una diferencia
-## 1.1 - Descartar todas las diferencias que sean negativas
-## 1.2 - Las diferencias positivas pasaran a ser revisadas al campo de monto, donde todas tienen que se iguales
-## Paso 2 Realizar comparacion con montos
-## 2.1 - Todas las que no sean iguales se descartan automaticamente
-## 2.2 - Las Cantidades que sean iguales pasaran a revisar la diferencia minima o cercana a 0 
-## Paso 3 matchear id_usuario  con card
-## 3.1 - Tomar el id de usuario del dataframe de adip correspondiente a la fecha en segundos
-## 3.2 - comparar el id_usuario con el diccionario y buscar su galeria de tarjetas con la minima comparada para ver si la tarjeta de esa recarga esta asignada a ese usuario
-## Paso 4 Obtener la  minima y matchear
-## 4.1 - Obtener la minima de las transacciones filtradas
-## 4.2 - La diferencia minima matchearla por los campos de cada dataframe original.
