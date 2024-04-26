@@ -28,92 +28,71 @@ file_mp = os.path.join(ruta_mp, archivo_mp)
 df_mp = pd.read_csv(file_mp, low_memory=False, encoding='latin-1')
 # Lista de identificadores de transacción
 ctc = [
-    '71286149582',
     '71240815536',
-    '71671444315',
-    '71879428944',
-    '71718770714',
-    '72845562353',
-    '72934003383',
-    '73181128594',
-    '73242073804',
-    '72964485679',
-    '73047625195',
-    '73266562608',
-    '73182767240',
-    '72734745019',
-    '72950286322',
-    '72983315459',
-    '72966122041',
-    '72734935031',
-    '72734827039',
-    '72983265303',
-    '72966275549',
-    '72950086928',
-    '73687404494',
+    '71286149582',
     '73560261598',
-    '72937867930',
     '73342702841',
     '73342452031',
-    '73081827700',
-    '74094674978',
     '73562116348',
     '73562158196',
-    '74350684860',
-    '74154494067',
-    '74166417929',
-    '74324332019',
-    '73626794601',
-    '74539270099',
-    '74513382933',
-    '72065580619',
-    '74699030086',
-    '74697782238',
-    '74192924975',
-    '74878411295',
+    '73687404494',
     '73773899904',
-    '74441629877',
+    '73626794601',
+    '74094674978',
+    '74113509366',
     '74166610154',
-    '75521109196',
-    '75554010037',
-    '75398257881',
-    '75400296343',
-    '75554425108',
-    '72641837853',
     '74309426730',
     '74309255510',
-    '75153284936',
     '74084925121',
     '74084501933',
-    '74848965826',
-    '74113509366',
-    '74787640644',
-    '75197573383',
-    '75774792296',
+    '74350684860',
+    '74154494067',
+    '74330547938',
+    '74166417929',
+    '74192924975',
     '74489296152',
     '74485340568',
-    '74330547938',
-    '74376657983',
-    '75563922894',
-    '75944095248',
-    '75771976741',
+    '74272965467',
+    '74324332019',
     '74565604300',
+    '74376657983',
+    '74697782238',
+    '74441629877',
+    '74539270099',
+    '74513382933',
+    '74699030086',
+    '74787640644',
+    '74848965826',
+    '75019459736',
+    '74878411295',
     '74867924439',
-    '75956430945',
+    '75153284936',
+    '75197573383',
     '75172211945',
-    '76059425385',
+    '75521109196',
+    '75554425108',
+    '75398257881',
+    '75400296343',
+    '75563922894',
+    '75386490981',
+    '75554010037',
+    '75774792296',
+    '75944095248',
     '75737235731',
     '75723081623',
-    '75956280629',
-    '73217617518',
-    '75386490981',
-    '76112018340',
-    '76139221958',
-    '74272965467',
-    '75019459736',
+    '75771976741',
     '76004002886',
     '76066321250',
+    '76112018340',
+    '76139221958',
+    '75956430945',
+    '75956280629',
+    '76271150182',
+    '76059425385',
 ] ## Actualizado hasta 23 de Abril
+
+
+
 ## Inicio de Analisis 
 print("Iniciando Analisis")
 print("Ajuste de datos...")
@@ -157,7 +136,6 @@ for card in cards_unique:
 
 cards_users = pd.concat(user_c, ignore_index=True)
 
-
 # Create a dictionary to store user IDs and their associated card numbers
 print("Creando JSON usuario-tarjetas...")
 user_cards = {}
@@ -178,12 +156,12 @@ card_users = {}
 ##
 for user_id, card_number in zip(df_cards['user_id'], usuarios_ctc['card_number']):
     if card_number not in card_users:
-        card_users[card_number] = set()  # Initialize an empty set for unique card numbers
-    card_users[card_number].add(user_id)  # Add card number to the set (duplicates won't be added)
-# Convierte los conjuntos a listas antes de la serialización
+        card_users[card_number] = set()  
+    card_users[card_number].add(user_id)  
+
 for card_number,user_id in card_users.items():
     card_users[card_number] = list(user_id)
-# Crea el JSON
+
 with open(f'{ruta_trabajo}/tarjeta-usuarios-{mes_nombre}.json', 'w') as archivo:
     json.dump(card_users, archivo,indent=4)
 
@@ -227,16 +205,10 @@ for i, fecha_fsg in enumerate(adip['fecha_recarga_segundos_mas_hora']):
         diferencia_actual = fecha_fmp - fecha_fsg
         if(diferencia_actual > 0):
             if(diferencia_actual <= max_diferencia_permitida):
-                # lista_diferencias= (id_tr,tr_org,fecha_fsg,fecha_fmp,diferencia_actual,monto_fsg,monto_fmp)
-                # print(lista_diferencias)
                 if monto_fsg == monto_fmp:
-                    # print(lista_diferencias)
                     if diferencia_actual < minima_diferencia:
                         lista_diferencias= (id_tr,tr_org,fecha_fsg,fecha_fmp,diferencia_actual,monto_fsg,monto_fmp)
-                        # lista_diferencias= (fecha_fsg,fecha_fmp,diferencia_actual)
- 
                         minima_diferencia = diferencia_actual
-
                         indice_minimo = i
                         t_card = card_hex.zfill(16)
                         id_user = adip['user_id'].iloc[i] 
@@ -255,7 +227,7 @@ for i, fecha_fsg in enumerate(adip['fecha_recarga_segundos_mas_hora']):
                                     'user_id':id_usuario_fsg,
                                     'email':email,
                                     }) 
-                        # print(f"{id_tr}-{monto_fsg}-{monto_fmp}-{tr_org}-{card_hex}-{diferencia_actual}")
+                        
     relacion_fechas[fecha_fsg] = lista_diferencias
 # print(relacion_fechas)
 resumen = pd.DataFrame(resultados)
