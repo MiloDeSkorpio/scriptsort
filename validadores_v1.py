@@ -12,10 +12,10 @@ y = "2024"
 ruta_trabajo = f"Validadores/{y}/{m} {mes}"
 
 ## Es el periodo en el que se realiza el analisis
-periodo = "1ra qna"
+periodo = "15 al 21"
 
 ## Archivo a subir 
-file_to_upload = 'Mpeso_1ra qna Abril.csv'
+file_to_upload = 'Validaciones del 15 al 21 de abril 2024.csv'
 
 ## metodo para asignar la ruta al archivo
 archivo = os.path.join(ruta_trabajo, file_to_upload)
