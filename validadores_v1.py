@@ -2,9 +2,9 @@ import os
 import pandas as pd
 
 ## Definimos el mes con nombre
-mes = "Abril"
+mes = "Mayo"
 ## Definimos el mes con número
-m = "04"
+m = "05"
 ## Definimos el año
 y = "2024"
 
@@ -12,10 +12,10 @@ y = "2024"
 ruta_trabajo = f"Validadores/{y}/{m} {mes}"
 
 ## Es el periodo en el que se realiza el analisis
-periodo = "15 al 21"
+periodo = "EXTEMPORANEA_2DA_QNA_ABRIL"
 
 ## Archivo a subir 
-file_to_upload = 'Validaciones del 15 al 21 de abril 2024.csv'
+file_to_upload = 'ORT_EXTEMPORANEA_2DA_QNA_ABRIL_2024_MICROSAFE.csv'
 
 ## metodo para asignar la ruta al archivo
 archivo = os.path.join(ruta_trabajo, file_to_upload)

@@ -5,15 +5,15 @@ from openpyxl import Workbook
 import matplotlib.pyplot as plt
 import numpy as np
 ## Nombre del mes con texto, se ocupara para leer la carpeta del mes y asignar el nombre a los archivos generados
-mes_nombre = "Abril"
+mes_nombre = "Mayo"
 
 ## Modificar el contenido de m = "mes" * Para los meses que anteriores a octubre ocupar la sintaxis 09 = Septiembre 08 = Agosto
 ## Modificar el contenido de Y = "Año" 2023 / 2024 / 2025 
-m = "04"
+m = "05"
 y = "2024"
 
 ##
-semana = "17"
+semana = "21"
 ## Nombre de las extenciones de los archivos que ocupara el script para realizar 
 a = "-Transacciones.csv"
 ae = "-Transacciones-extension.csv"
@@ -23,8 +23,8 @@ ruta_guardado = f"Transacciones/{y}/{m} {mes_nombre}"
 
 ## Este es el rango de dias en el que se trabajara, para el tema del ultimo dia siempre se le sumara 1
 ## Ejemplo primera quincena dia_fn = 16 el metodo range trabaja de esa forma
-dia_in = 22
-dia_fn = 29
+dia_in = 20
+dia_fn = 27
 rango = dia_fn - dia_in
 
 ## Listado de los archvios -Transacciones.csv
@@ -251,7 +251,7 @@ def grafico_rre(df,title,name,periodo):
 # Create stacked bars using bar_stack
   # Create a dataframe to simplify plotting
   tipos = {
-      'AppCDMx': appcdmx_mt,
+      'AppCDMX': appcdmx_mt,
       'Comercios': comercios_mt,
       'Digitales': digitales_mt
   }
@@ -261,12 +261,12 @@ def grafico_rre(df,title,name,periodo):
   multiplier = 0
 
   colors = {  # Dictionary of colors for each attribute
-      'AppCDMx': '#b81532',
+      'AppCDMX': '#b81532',
       'Comercios': '#af38c1',
       'Digitales': '#08acec'
   }
   lColors = {
-    'AppCDMx': '#4b0615',
+    'AppCDMX': '#4b0615',
     'Comercios': '#420c46',
     'Digitales': '#06314b'
   }
@@ -282,15 +282,15 @@ def grafico_rre(df,title,name,periodo):
   ax2 = ax.twinx()
   for i, tr in enumerate(appcdmx_tr):
     ax2.annotate(f'{tr:,.0f}', (dias[i], tr), xytext=(-20,10), textcoords='offset points', fontsize=9, color='#4b0615')
-  ax2.plot(dias,appcdmx_tr,label='Montos Appcdmx',color='#f8747e', marker='o',linestyle='solid')
+  ax2.plot(dias,appcdmx_tr,label='Transacciones AppCDMX',color='#f8747e', marker='o',linestyle='solid')
   
   for i, tr in enumerate(comercios_tr):
     ax2.annotate(f'{tr:,.0f}', (dias[i], tr), xytext=(-20,10), textcoords='offset points', fontsize=9, color='#420c46')
-  ax2.plot(dias,comercios_tr,label='Montos Comercios',color='#66246b', marker='o',linestyle='solid')
+  ax2.plot(dias,comercios_tr,label='Transacciones Comercios',color='#66246b', marker='o',linestyle='solid')
   
   for i, tr in enumerate(digitales_tr):
     ax2.annotate(f'{tr:,.0f}', (dias[i], tr), xytext=(-20,10), textcoords='offset points', fontsize=9, color='#06314b')
-  ax2.plot(dias,digitales_tr,label='Montos Digitales',color='#006fa5', marker='o',linestyle='solid')
+  ax2.plot(dias,digitales_tr,label='Transacciones Digitales',color='#006fa5', marker='o',linestyle='solid')
   
     ## Creamos una legenda fuera del grafico
   fig.legend(loc='lower center', ncols=6, fontsize=12)
@@ -318,6 +318,12 @@ if rango < 13 :
   ## Convertir el arreglo resumen en DataFrame
   resultados = pd.DataFrame(resumen)
   ## Definir el nombre de los archivos que seran guardados en la carpeta al finalizar el analisis
+  print("Generando datos en crudo")
+  transa = pd.concat(transacciones)
+  archivo_full = f"Full_{dia_in}-{dia_fn-1}_{mes_nombre}.csv"
+  ruta_full = os.path.join(ruta_guardado, archivo_full)
+  transa.to_csv(ruta_full, index=False)
+  
   archivo_sem = f"RRE_{mes_nombre}_{dia_in}-{dia_fn-1}.csv"
   ruta_res_sem = os.path.join(ruta_guardado, archivo_sem)
   resultados.to_csv(ruta_res_sem, index=False)
@@ -539,10 +545,10 @@ elif rango > 16:
   pr_fs4 = 1.7
   
   ## Porcentaje mensual de comision app cdmx
-  pr_ap1 = 2
-  pr_ap2 = 1.9
-  pr_ap3 = 1.8
-  pr_ap4 = 1.7
+  pr_ap1 = 2.2
+  pr_ap2 = 2.1
+  pr_ap3 = 2
+  pr_ap4 = 1.9
 
   ## Limites de Rango, esta es la tabla que se ecnuentra en el presente contrato de Mercado Pago
   ## Los mismos rangos se utilizan para recargas fisicas y digitales 
