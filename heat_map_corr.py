@@ -1,145 +1,110 @@
 import pandas as pd
 import os
 
-# Define month names and codes
+## Define: mes ="Febrero" --- Nombre del mes
 mes = "Mayo"
+## Define: m ="02"  ---- Numero del mes
 m = "05"
+## Define: y ="2024" --- Año a tomar en cuenta en el analisis
 y = "2024"
-
-parque_vehicular = {
-  'MIIT': 142, 
-  'SAUSA': 66, 
-  'ATROLSA': 57, 
-  'CEUSA': 65, 
-  'AULSA': 62,
-  'CODIVERSA': 54, 
-  'COTAXOMIL': 129, 
-  'ABC': 76, 
-  'MOVIN': 86
-    }
-# Set of days to process
-l = 23
-# Viernes + 1
-v = 18
-dias_es = l
-# dias_ord = sorted(dias_es)
-s = 25
-d = 26
-
-# Valid bus lines
-lineas_valid = {
-    'MIIT',
-    'SAUSA',
-    'ATROLSA',
-    'CEUSA',
-    'AULSA',
-    'CODIVERSA',
-    'COTAXOMIL',
-    'ABC',
-    'MOVIN',
-}
-lin_ord = sorted(lineas_valid)
-rango = '20 al 26'
-# Define company and file path
-empresa = 'ORT'
+## Rango de dias semanales L - V Agregando + 1 al viernes ** Leer documentacion metodo range
+sem = range(20,25)
+## Dia más afluente de la semana
+dma = 23
+## Sabado
+sb = 25
+## Domingo
+dm = 26
+## ------- Definir datos de Entrada --------
 ruta_trabajo = f"Validadores/{y}/{m} {mes}/"
 archivo = 'Validaciones del 20 al 26 de mayo 2024.csv'
 archivo = os.path.join(ruta_trabajo, archivo)
-
-# Read data from CSV
+# Lectura del archivo de Entrada
 df = pd.read_csv(archivo, low_memory=False, encoding='latin-1')
-
-# Filter transactions of type '3' and replace line codes
-df['TIPO_TRANSACCION'] = df['TIPO_TRANSACCION'].astype(str)
-df_bus_val = df[df['TIPO_TRANSACCION'] == '3']
-reemplazos = {
-    '1': 'MIIT',
-    '2': 'SAUSA',
-    '3': 'ATROLSA',
-    '4': 'CEUSA',
-    '7': 'AULSA',
-    '11': 'CODIVERSA',
-    '14':'COTAXOMIL',
-    '15': 'ABC',
-    '16': 'MOVIN',
- }# Assuming '...' represents remaining replacements
-for codigo, reemplazo in reemplazos.items():
-    df_bus_val.replace({'LINEA': codigo}, reemplazo, inplace=True)
-
-# Final result structure
-re_lv = []
-
-# Loop through valid lines
-for linea in lin_ord:
-    df_corr = df_bus_val[df_bus_val['LINEA'] == linea]
-    data = {'Concesionario': linea, 'Parque Vehicular Total': parque_vehicular[linea]}  # Dictionary to store data for current line
-
-    # Loop through days and hours, counting active buses per time slot
-    # for dia in dias_es:
-    for hora in range(0, 24):
-        inicio = f"{l}/{m}/{y} {hora:02d}:00:00"
-        fin = f"{l}/{m}/{y} {(hora+1):02d}:00:00"
-        df_hora = df_corr[(df_corr['FECHA_HORA_TRANSACCION'] >= inicio) & (df_corr['FECHA_HORA_TRANSACCION'] < fin)]
-        data[f"{hora:02d}:00"] = len(df_hora['AUTOBUS'].unique())
-
-    # Append data for current line to the results
-    re_lv.append(data)
-
-# Create Pandas DataFrame from results
-resumen_lv = pd.DataFrame(re_lv)
-
-
-
-res = []
-
-# Loop through valid lines
-for linea in lin_ord:
-    df_corr = df_bus_val[df_bus_val['LINEA'] == linea]
-    data = {'Concesionario': linea, 'Parque Vehicular Total': parque_vehicular[linea]}  # Dictionary to store data for current line
-
-    # Loop through days and hours, counting active buses per time slot
-
-    for hora in range(0, 24):
-        inicio = f"{s}/{m}/{y} {hora:02d}:00:00"
-        fin = f"{s}/{m}/{y} {(hora+1):02d}:00:00"
-        df_hora = df_corr[(df_corr['FECHA_HORA_TRANSACCION'] >= inicio) & (df_corr['FECHA_HORA_TRANSACCION'] < fin)]
-        data[f"{hora:02d}:00"] = len(df_hora['AUTOBUS'].unique())
-
-    # Append data for current line to the results
-    res.append(data)
-
-# Create Pandas DataFrame from results
-resumen_s = pd.DataFrame(res)
-
-red = []
-
-# Loop through valid lines
-for linea in lin_ord:
-    df_corr = df_bus_val[df_bus_val['LINEA'] == linea]
-    data = {'Concesionario': linea, 'Parque Vehicular Total': parque_vehicular[linea]}  # Dictionary to store data for current line
-
-    # Loop through days and hours, counting active buses per time slot
-
-    for hora in range(0, 24):
-        inicio = f"{d}/{m}/{y} {hora:02d}:00:00"
-        fin = f"{d}/{m}/{y} {(hora+1):02d}:00:00"
-        df_hora = df_corr[(df_corr['FECHA_HORA_TRANSACCION'] >= inicio) & (df_corr['FECHA_HORA_TRANSACCION'] < fin)]
-        data[f"{hora:02d}:00"] = len(df_hora['AUTOBUS'].unique())
-
-    # Append data for current line to the results
-    red.append(data)
-
-# Create Pandas DataFrame from results
-resumen_d = pd.DataFrame(red)
-
-# Define output filename and path
-fn = f'RE_BUS_{empresa}_{mes}_{rango}.xlsx'
+## ------- Definir datos de Salida --------
+## Semana completa
+semana = '20 al 26'
+## Nombre del archivo y ruta de salida
+fn = f'RE_BUS_{semana}_{mes}.xlsx'
 ruta_doc = os.path.join(ruta_trabajo, fn)
+## Diccionario de Corredores el numero corresponde al numero de LINEA de la estructura de datos
+json_info = {
+    '1': {'nombre': 'MIIT', 'pv': 142},
+    '2': {'nombre': 'SAUSA', 'pv': 66},
+    '3': {'nombre': 'ATROLSA', 'pv': 57},
+    '4': {'nombre': 'CEUSA', 'pv': 65},
+    '7': {'nombre': 'AULSA', 'pv': 62},
+    '11': {'nombre': 'CODIVERSA', 'pv': 54},
+    '14': {'nombre': 'COTAXOMIL', 'pv': 129},
+    '15': {'nombre': 'ABC', 'pv': 76},
+    '16': {'nombre': 'MOVIN', 'pv': 86},
+}
+## Convertir el TIPO_TRANSACCION a 
+df['TIPO_TRANSACCION'] = df['TIPO_TRANSACCION'].astype(str)
+df_val = df[df['TIPO_TRANSACCION'] == '3']
+## Remplazar El Codigo de la linea por nombre
+for codigo, info in json_info.items():
+    df_val.replace({'LINEA': codigo}, info['nombre'], inplace=True)
+## Ordenar json_info alfabeticamente por nombre
+json_info = dict(sorted(json_info.items(), key=lambda item: item[1]['nombre']))
 
-# Write DataFrame to Excel file
+resem = []
+## Crear
+for codigo, info in json_info.items():
+    ## Dataframe por Linea
+    df_cons = df_val[df_val['LINEA'] == info['nombre']]
+    ## Data BASE
+    data = {'Concesionario': info['nombre'], 'Parque Vehicular Total': info['pv']} 
+    autobuses_por_hora = {f"{hora:02d}:00": 0 for hora in range(24)}
+    for dia in sem:
+        for hora in range(0, 24):
+            inicio = f"{dia}/{m}/{y} {hora:02d}:00:00"
+            fin = f"{dia}/{m}/{y} {(hora+1):02d}:00:00"
+            df_hora = df_cons[(df_cons['FECHA_HORA_TRANSACCION'] >= inicio) & (df_cons['FECHA_HORA_TRANSACCION'] < fin)]
+            autobuses_por_hora[f"{hora:02d}:00"] += len(df_hora['AUTOBUS'].unique())
+    # Calcular el promedio de autobuses por hora
+    for hora in autobuses_por_hora:
+        autobuses_por_hora[hora] /= 5
+        data[hora] = autobuses_por_hora[hora]
+    # Append data for current line to the results
+    resem.append(data)
+# Create Pandas DataFrame from results
+prom_lv = pd.DataFrame(resem)
+
+## Estructura SEMANAL
+
+## Crear
+def diasUnicos(array,dia):
+    for codigo, info in json_info.items():
+        ## Dataframe por Linea
+        df_cons = df_val[df_val['LINEA'] == info['nombre']]
+        ## Data BASE
+        data = {'Concesionario': info['nombre'], 'Parque Vehicular Total': info['pv']} 
+        for hora in range(0, 24):
+            inicio = f"{dia}/{m}/{y} {hora:02d}:00:00"
+            fin = f"{dia}/{m}/{y} {(hora+1):02d}:00:00"
+            df_hora = df_cons[(df_cons['FECHA_HORA_TRANSACCION'] >= inicio) & (df_cons['FECHA_HORA_TRANSACCION'] < fin)]
+            data[f"{hora:02d}:00"] = len(df_hora['AUTOBUS'].unique())
+        # Append data for current line to the results
+        array.append(data)
+    # Create Pandas DataFrame from results
+
+redma = []
+diasUnicos(redma,dma)
+resumen_dma = pd.DataFrame(redma)
+resb = []
+diasUnicos(resb,sb)
+resumen_sb = pd.DataFrame(resb)
+redm = []
+diasUnicos(redm,dm)
+resumen_dm = pd.DataFrame(redm)
+
+
+# ## Crear XLSX
 with pd.ExcelWriter(ruta_doc) as writer:
-    resumen_lv.to_excel(writer, index=False, sheet_name=f'AUTOBUS_L-V')
-    resumen_s.to_excel(writer, index=False, sheet_name=f'AUTOBUS_S')
-    resumen_d.to_excel(writer, index=False, sheet_name=f'AUTOBUS_D')
+    prom_lv.to_excel(writer, index=False, sheet_name=f'PROM_AUTOBUS_L-V')
+    resumen_dma.to_excel(writer, index=False, sheet_name=f'AUTOBUS_{dma}')
+    resumen_sb.to_excel(writer, index=False, sheet_name=f'AUTOBUS_S')
+    resumen_dm.to_excel(writer, index=False, sheet_name=f'AUTOBUS_D')
 
 
