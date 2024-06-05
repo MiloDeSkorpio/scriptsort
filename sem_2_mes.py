@@ -4,18 +4,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 # Directorio donde se encuentran los archivos CSV y la cual sera la base de trabajo del Script
-ruta_guardado = "Transacciones/2024/Semanas/Semana 18"
-semana = '18'
+ruta_guardado = "Transacciones/2024/Semanas/Semana 22"
+semana = '22'
 # Definir los nombres de los archivos que se van a leer
 ## Agregar los archivos en base a la susecion de fechas confome al calendario
 archivos_a_leer = [
-    "20240429-Transacciones.csv",
-    "20240430-Transacciones.csv",
-    "20240501-Transacciones.csv",
-    "20240502-Transacciones.csv",
-    "20240503-Transacciones.csv",
-    "20240504-Transacciones.csv",
-    "20240505-Transacciones.csv",
+    "20240527-Transacciones.csv",
+    "20240528-Transacciones.csv",
+    "20240529-Transacciones.csv",
+    "20240530-Transacciones.csv",
+    "20240531-Transacciones.csv",
+    "20240601-Transacciones.csv",
+    "20240602-Transacciones.csv",
 ]
 
 # Lista para almacenar los DataFrames de los archivos
@@ -295,6 +295,9 @@ archivo_full = f"Full__semana_{semana}.csv"
 ruta_full = os.path.join(ruta_guardado, archivo_full)
 df_transacciones.to_csv(ruta_full, index=False)
 ##   Extenciones
+archivo_sem = f"RRE_{semana}.csv"
+ruta_res_sem = os.path.join(ruta_guardado, archivo_sem)
+resultados.to_csv(ruta_res_sem, index=False)
 ##
 nameGrApp = f'AppCDMX_Grafico_Semana_{semana}.png'
 titleApp = f'Comportamiento AppCDMX semana {semana}'

@@ -23,8 +23,8 @@ ruta_guardado = f"Transacciones/{y}/{m} {mes_nombre}"
 
 ## Este es el rango de dias en el que se trabajara, para el tema del ultimo dia siempre se le sumara 1
 ## Ejemplo primera quincena dia_fn = 16 el metodo range trabaja de esa forma
-dia_in = 20
-dia_fn = 27
+dia_in = 16
+dia_fn = 32
 rango = dia_fn - dia_in
 
 ## Listado de los archvios -Transacciones.csv

@@ -12,10 +12,10 @@ y = "2024"
 ruta_trabajo = f"Validadores/{y}/{m} {mes}"
 
 ## Es el periodo en el que se realiza el analisis
-periodo = "EXTEMPORANEA_2DA_QNA_ABRIL"
+periodo = "20 al 26"
 
 ## Archivo a subir 
-file_to_upload = 'ORT_EXTEMPORANEA_2DA_QNA_ABRIL_2024_MICROSAFE.csv'
+file_to_upload = 'Validaciones de la semana del 20 al 26 de mayo 2024.csv'
 
 ## metodo para asignar la ruta al archivo
 archivo = os.path.join(ruta_trabajo, file_to_upload)

@@ -2,28 +2,28 @@ import pandas as pd
 import os
 
 ## Define: mes ="Febrero" --- Nombre del mes
-mes = "Mayo"
+mes = "Junio"
 ## Define: m ="02"  ---- Numero del mes
-m = "05"
+m = "06"
 ## Define: y ="2024" --- Año a tomar en cuenta en el analisis
 y = "2024"
 ## Rango de dias semanales L - V Agregando + 1 al viernes ** Leer documentacion metodo range
-sem = range(20,25)
+sem = range(27,32)
 ## Dia más afluente de la semana
-dma = 23
+dma = 28
 ## Sabado
-sb = 25
+sb = '01'
 ## Domingo
-dm = 26
+dm = '02'
 ## ------- Definir datos de Entrada --------
 ruta_trabajo = f"Validadores/{y}/{m} {mes}/"
-archivo = 'Validaciones del 20 al 26 de mayo 2024.csv'
+archivo = 'Validaciones del 27 de mayo al 02 de junio 2024.csv'
 archivo = os.path.join(ruta_trabajo, archivo)
 # Lectura del archivo de Entrada
 df = pd.read_csv(archivo, low_memory=False, encoding='latin-1')
 ## ------- Definir datos de Salida --------
 ## Semana completa
-semana = '20 al 26'
+semana = '27 de mayo al 02 de junio'
 ## Nombre del archivo y ruta de salida
 fn = f'RE_BUS_{semana}_{mes}.xlsx'
 ruta_doc = os.path.join(ruta_trabajo, fn)

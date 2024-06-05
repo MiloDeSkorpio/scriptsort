@@ -5,11 +5,11 @@ import pandas as pd
 ## 
 smartpos = 'SMARTPOS1494126447'
 ## Nombre del mes con texto, se ocupara para leer la carpeta del mes y asignar el nombre a los archivos generados
-mes_nombre = "Mayo"
+mes_nombre = "Junio"
 ## 
 ## Modificar el contenido de m = "mes" * Para los meses que anteriores a octubre ocupar la sintaxis 09 = Septiembre 08 = Agosto
 ## Modificar el contenido de Y = "Año" 2023 / 2024 / 2025 
-m = "05"
+m = "06"
 y = "2024"
 
 ## Nombre de las extenciones de los archivos que ocupara el script para realizar 
@@ -21,8 +21,8 @@ ruta_guardado = f"Transacciones/{y}/{m} {mes_nombre}"
 
 ## Este es el rango de dias en el que se trabajara, para el tema del ultimo dia siempre se le sumara 1
 ## Ejemplo primera quincena dia_fn = 16 el metodo range trabaja de esa forma
-dia_in = 20
-dia_fn = 27
+dia_in = 1
+dia_fn = 3
 rango = dia_fn - dia_in
 
 periodo = f'{dia_in} - {dia_fn-1}'
