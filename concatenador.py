@@ -4,10 +4,10 @@ import glob
 
 # Directorio donde se encuentran los archivos CSV y la cual sera la base de trabajo del Script
 c = 'Validadores'
-c2 = 'Mpeso'
-periodo = '1ra qna Abril'
+c2 = 'Validaciones'
+periodo = '2da qna Mayo'
 archivo_f = f'{c2}_{periodo}.csv'
-ruta_guardado = f'{c}/{c2}/Abril/1ra qna'
+ruta_guardado = f'{c}/{c2}/Mayo/2da qna'
 archivos = glob.glob(os.path.join(ruta_guardado, '*.csv'))
 
 df = pd.concat((pd.read_csv(archivo, dtype={'LOCATION_ID': str}, encoding='latin-1') for archivo in archivos), ignore_index=True)

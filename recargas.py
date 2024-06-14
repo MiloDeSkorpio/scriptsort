@@ -5,15 +5,15 @@ from openpyxl import Workbook
 import matplotlib.pyplot as plt
 import numpy as np
 ## Nombre del mes con texto, se ocupara para leer la carpeta del mes y asignar el nombre a los archivos generados
-mes_nombre = "Mayo"
+mes_nombre = "Abril"
 
 ## Modificar el contenido de m = "mes" * Para los meses que anteriores a octubre ocupar la sintaxis 09 = Septiembre 08 = Agosto
 ## Modificar el contenido de Y = "Año" 2023 / 2024 / 2025 
-m = "05"
+m = "04"
 y = "2024"
 
 ##
-semana = "21"
+semana = "23"
 ## Nombre de las extenciones de los archivos que ocupara el script para realizar 
 a = "-Transacciones.csv"
 ae = "-Transacciones-extension.csv"
@@ -23,8 +23,8 @@ ruta_guardado = f"Transacciones/{y}/{m} {mes_nombre}"
 
 ## Este es el rango de dias en el que se trabajara, para el tema del ultimo dia siempre se le sumara 1
 ## Ejemplo primera quincena dia_fn = 16 el metodo range trabaja de esa forma
-dia_in = 16
-dia_fn = 32
+dia_in = 1
+dia_fn = 31
 rango = dia_fn - dia_in
 
 ## Listado de los archvios -Transacciones.csv
@@ -57,13 +57,6 @@ resumen = []
 
 ## Funcion para el analisis general
 def resumen_transacciones(transacciones):
-  """
-  Función para generar un resumen de transacciones por tipo y método.
-  Args:
-    transacciones: Lista de DataFrames de transacciones.
-  Returns:
-    Lista de diccionarios con el resumen de transacciones.
-  """
   for df in transacciones:
     ## Filtrar las transacciones de tipo 0
     df['TIPO_TRANSACCION'] = df['TIPO_TRANSACCION'].astype('str')
@@ -584,20 +577,20 @@ elif rango > 16:
   elif tt_fisico <= r4:
       pr_com_fis = pr_fs4
       
-  ## Condicional de appcdmx
-  if tt_appcdmx <= r1:
-      pr_com_app = pr_ap1
-  elif tt_appcdmx <= r2:
-      pr_com_app = pr_ap2
-  elif tt_appcdmx <= r3:
-      pr_com_app = pr_ap3
-  elif tt_appcdmx <= r4:
-      pr_com_app = pr_ap4
+  # ## Condicional de appcdmx
+  # if tt_appcdmx <= r1:
+  #     pr_com_app = pr_ap1
+  # elif tt_appcdmx <= r2:
+  #     pr_com_app = pr_ap2
+  # elif tt_appcdmx <= r3:
+  #     pr_com_app = pr_ap3
+  # elif tt_appcdmx <= r4:
+  #     pr_com_app = pr_ap4
 
   ## Comisiones Fisicas y Digitales
   com_fisico = (pr_com_fis/100)*tt_fisico
   com_digital = (pr_com_dig/100)*tt_digital
-  com_appcdmx = (pr_com_app/100)*tt_appcdmx
+  com_appcdmx = (pr_com_dig/100)*tt_appcdmx
   com_total = com_fisico + com_digital + com_appcdmx
   prm_digital = tt_digital / mt_total 
   prm_fisico = tt_fisico / mt_total 
