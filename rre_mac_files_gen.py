@@ -1,14 +1,14 @@
 import pandas as pd
 import os
 ## Define: mes ="Febrero" --- Nombre del mes
-mes = "Mayo"
+mes = "Junio"
 ## Define: m ="02"  ---- Numero del mes
-m = "05"
+m = "06"
 ## Define: y ="2024" --- Año a tomar en cuenta en el analisis
 y = "2024"
 ## Rango de dias semanales L - V Agregando + 1 al viernes ** Leer documentacion metodo range
-dia_in = 16
-dia_fn = 32
+dia_in = 1
+dia_fn = 16
 ## Nombre de las extenciones de los archivos que ocupara el script para realizar 
 a = "-Transacciones.csv"
 ## Ruta de la cual se extraeran todos los archivos y en la misma se guardaran los archivos
