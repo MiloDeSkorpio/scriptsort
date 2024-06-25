@@ -7,7 +7,7 @@ m = "06"
 ## Define: y ="2024" --- Año a tomar en cuenta en el analisis
 y = "2024"
 ## Rango de dias semanales L - V Agregando + 1 al viernes ** Leer documentacion metodo range
-d = "03"
+d = "16"
 ## ------- Definir datos de Entrada --------
 ruta_trabajo = f"Transacciones/{y}/{m} {mes}/"
 # archivo = f'{mes}_crudo_2023.csv'
