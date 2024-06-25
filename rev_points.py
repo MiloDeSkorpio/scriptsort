@@ -21,8 +21,8 @@ ruta_guardado = f"Transacciones/{y}/{m} {mes_nombre}"
 
 ## Este es el rango de dias en el que se trabajara, para el tema del ultimo dia siempre se le sumara 1
 ## Ejemplo primera quincena dia_fn = 16 el metodo range trabaja de esa forma
-dia_in = 3
-dia_fn = 10
+dia_in = 17
+dia_fn = 24
 rango = dia_fn - dia_in
 
 periodo = f'{dia_in} - {dia_fn-1}'
@@ -69,14 +69,12 @@ for fecha in fechas_unicas:
       'FECHA': fecha,
       '# Transacciones': df_fil.shape[0],
       'Monto': monto,
-      # 'Monto Total': mto_fis + mto_dig,
   })
   
 res = pd.DataFrame(resumen)
 archivo_res = f"Resumen_AULSA_{periodo}_{mes_nombre}.csv"
 ruta_resultados = os.path.join(ruta_guardado,archivo_res )
 res.to_csv(ruta_resultados, index=False)
-print(res)
 print('Analisis Finalizado con Exito!!')
 
 
